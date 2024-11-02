@@ -61,17 +61,17 @@ const Dashboard = () => {
       },
       title: {
         display: true,
-        text: `Total Sale ${filter}`,
+        text: `Statistic Chart`,
       },
     },
     maintainAspectRatio: false,
   };
 
   const stats = [
-    { title: 'Total Orders in 24 Hours', value: 50, color: 'linear-gradient(135deg, #4e54c8, #8f94fb)' },
+    { title: 'Total Orders', value: 50, color: 'linear-gradient(135deg, #4e54c8, #8f94fb)' },
     { title: 'Pending Prescriptions', value: 20, color: 'linear-gradient(135deg, #42e695, #3bb2b8)' },
-    { title: `Total Orders (${filter})`, value: filteredData.totalOrders || 0, color: 'linear-gradient(135deg, #fc67fa, #f681c5)' },
-    { title: `Total Sales (${filter})`, value: `$${filteredData.totalSales || 0}`, color: 'linear-gradient(135deg, #667eea, #764ba2)' },
+    { title: `Completed Orders`, value: filteredData.totalOrders || 0, color: 'linear-gradient(135deg, #fc67fa, #f681c5)' },
+    { title: `Total Sales`, value: `$${filteredData.totalSales || 0}`, color: 'linear-gradient(135deg, #667eea, #764ba2)' },
   ];
 
   const openMenu = (event) => {
@@ -163,11 +163,11 @@ const Dashboard = () => {
             <MenuItem onClick={() => handleFilterSelect('1 Month')}>1 Month</MenuItem>
             <MenuItem onClick={() => handleFilterSelect('3 Months')}>3 Months</MenuItem>
             <MenuItem onClick={() => handleFilterSelect('6 Months')}>6 Months</MenuItem>
-            <MenuItem onClick={() => handleFilterSelect('Year 2023')}>Year 2023</MenuItem>
+            <MenuItem onClick={() => handleFilterSelect('Year 2023')}>A Year</MenuItem>
           </Menu>
-          <Typography variant="h6" fontWeight="bold" sx={{ position: 'absolute', top: 16, right: 16 }}>
+          {/* <Typography variant="h6" fontWeight="bold" sx={{ position: 'absolute', top: 16, right: 16 }}>
             Total Sale: ${filteredData.totalSales || 0}
-          </Typography>
+          </Typography> */}
         </Box>
         <Box height={{ xs: 300, sm: 400 }} width="100%">
           <Bar data={data} options={options} />
