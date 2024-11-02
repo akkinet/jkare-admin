@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.682.0",
     "@aws-sdk/lib-dynamodb": "^3.685.0",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
