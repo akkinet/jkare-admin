@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  FaShoppingBag,
+  FaChartLine,
   FaUsers,
   FaFileInvoiceDollar,
   FaStore,
@@ -10,39 +10,23 @@ import {
   FaCog,
   FaUserShield,
 } from "react-icons/fa";
-import Dashboard from "../components/pages/dashboard";
-import Customers from "../components/pages/customers";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const Sidebar = () => {
-  const [activeComponent, setActiveComponent] = useState("orders");
+  const [activeComponent, setActiveComponent] = useState("dashboard");
+  const router = useRouter();
 
-  // Function to render the correct component based on active state
-  const renderComponent = () => {
-    switch (activeComponent) {
-      case "orders":
-        return <Dashboard />;
-      case "customers":
-        return <Customers />;
-      // case "billing":
-      //   return <Billing />;
-      // case "vendors":
-      //   return <Vendors />;
-      // case "products":
-      //   return <Products />;
-      // case "user-management":
-      //   return <UserManagement />;
-      // case "account-settings":
-      //   return <AccountSettings />;
-      // case "user-roles":
-      //   return <UserRoles />;
-      default:
-        return <Dashboard />;
+  useEffect(() => {
+    if (router && router.pathname) {
+      // Set active component based on current path, with fallback if path is '/'
+      const currentPath = router.pathname.slice(1) || "dashboard";
+      setActiveComponent(currentPath);
     }
-  };
+  }, [router]);
 
   return (
     <div className="flex h-[100vh]">
-      {/* Sidebar */}
       <div className="w-64 bg-customlightGray p-6 shadow-lg flex flex-col items-center">
         <div className="mb-8">
           <img
@@ -53,32 +37,30 @@ const Sidebar = () => {
         </div>
         <ul className="space-y-4 w-full">
           <li>
-            <button
+            <Link href="/"
               className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "orders"
+                activeComponent === "dashboard"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
-              onClick={() => setActiveComponent("orders")}
             >
-              <FaShoppingBag
+              <FaChartLine
                 className={`mr-3 ${
-                  activeComponent === "orders"
+                  activeComponent === "dashboard"
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
-              />{" "}
-              Orders
-            </button>
+              />
+              Dashboard
+            </Link>
           </li>
           <li>
-            <button
+            <Link href="/customer"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "customers"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
-              onClick={() => setActiveComponent("customers")}
             >
               <FaUsers
                 className={`mr-3 ${
@@ -86,18 +68,17 @@ const Sidebar = () => {
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
-              />{" "}
+              />
               Customers
-            </button>
+            </Link>
           </li>
           <li>
-            <button
+            <Link href="/billing"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "billing"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
-              onClick={() => setActiveComponent("billing")}
             >
               <FaFileInvoiceDollar
                 className={`mr-3 ${
@@ -105,18 +86,17 @@ const Sidebar = () => {
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
-              />{" "}
+              />
               Billing & Payments
-            </button>
+            </Link>
           </li>
           <li>
-            <button
+            <Link href="/vendors"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "vendors"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
-              onClick={() => setActiveComponent("vendors")}
             >
               <FaStore
                 className={`mr-3 ${
@@ -124,18 +104,17 @@ const Sidebar = () => {
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
-              />{" "}
+              />
               Vendors
-            </button>
+            </Link>
           </li>
           <li>
-            <button
+            <Link href="/products"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "products"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
-              onClick={() => setActiveComponent("products")}
             >
               <FaBox
                 className={`mr-3 ${
@@ -143,18 +122,17 @@ const Sidebar = () => {
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
-              />{" "}
+              />
               Products
-            </button>
+            </Link>
           </li>
           <li>
-            <button
+            <Link href="/userManagement"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "user-management"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
-              onClick={() => setActiveComponent("user-management")}
             >
               <FaUserCog
                 className={`mr-3 ${
@@ -162,18 +140,17 @@ const Sidebar = () => {
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
-              />{" "}
+              />
               User Management
-            </button>
+            </Link>
           </li>
           <li>
-            <button
+            <Link href="/accountSettings"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "account-settings"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
-              onClick={() => setActiveComponent("account-settings")}
             >
               <FaCog
                 className={`mr-3 ${
@@ -181,18 +158,17 @@ const Sidebar = () => {
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
-              />{" "}
+              />
               Account Settings
-            </button>
+            </Link>
           </li>
           <li>
-            <button
+            <Link href="/userRoles"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "user-roles"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
-              onClick={() => setActiveComponent("user-roles")}
             >
               <FaUserShield
                 className={`mr-3 ${
@@ -200,15 +176,12 @@ const Sidebar = () => {
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
-              />{" "}
+              />
               User Roles
-            </button>
+            </Link>
           </li>
         </ul>
       </div>
-
-      {/* Main Content */}
-      <div className=" p-1 flex-1">{renderComponent()}</div>
     </div>
   );
 };
