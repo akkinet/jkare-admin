@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import {
@@ -14,7 +14,7 @@ import {
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import ClearIcon from '@mui/icons-material/Clear';
 
-// to avoid server side issue 
+// to avoid server-side issue 
 const Bar = dynamic(() => import('react-chartjs-2').then((mod) => mod.Bar), {
   ssr: false,
 });
@@ -26,17 +26,32 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 const Dashboard = () => {
   const [filter, setFilter] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
-  const [filteredData, setFilteredData] = useState([]);
+  const [filteredData, setFilteredData] = useState({
+    orders: [],
+    sales: [],
+    totalOrders: 0,
+    totalSales: 0,
+  });
+  const [apiData, setApiData] = useState(null);
   const [isClient, setIsClient] = useState(false);
   console.log("Dashboard page is rendered");
 
   useEffect(() => {
     setIsClient(true);
-    applyFilter('Year 2023'); 
-  
+    fetchData();
   }, []);
 
- 
+  const fetchData = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/dashboard');
+      const data = await response.json();
+      setApiData(data);
+      applyFilter('Year 2023', data); 
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
   const currentMonthIndex = new Date().getMonth();
   const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -71,10 +86,10 @@ const Dashboard = () => {
   };
 
   const stats = [
-    { title: 'Total Orders', value: 50, color: 'linear-gradient(135deg, #4e54c8, #8f94fb)' },
-    { title: 'Pending Prescriptions', value: 20, color: 'linear-gradient(135deg, #42e695, #3bb2b8)' },
-    { title: `Completed Orders`, value: filteredData.totalOrders || 0, color: 'linear-gradient(135deg, #fc67fa, #f681c5)' },
-    { title: `Total Sales`, value: `$${filteredData.totalSales || 0}`, color: 'linear-gradient(135deg, #667eea, #764ba2)' },
+    { title: 'Total Orders', value: apiData?.totalOrders || 0, color: 'linear-gradient(135deg, #4e54c8, #8f94fb)' },
+    { title: 'Pending Prescriptions', value: apiData?.pendingPrescription || 0, color: 'linear-gradient(135deg, #42e695, #3bb2b8)' },
+    { title: `Completed Orders`, value: apiData?.completedOrders || 0, color: 'linear-gradient(135deg, #fc67fa, #f681c5)' },
+    { title: `Total Sales`, value: `$${apiData?.totalSales || 0}`, color: 'linear-gradient(135deg, #667eea, #764ba2)' },
   ];
 
   const openMenu = (event) => {
@@ -87,28 +102,28 @@ const Dashboard = () => {
 
   const handleFilterSelect = (selectedFilter) => {
     setFilter(selectedFilter);
-    applyFilter(selectedFilter);
+    applyFilter(selectedFilter, apiData);
     closeMenu();
   };
 
-  const applyFilter = (filterOption) => {
+  const applyFilter = (filterOption, data) => {
+    const fullOrdersData = data?.stats.orders || [];
+    const fullSalesData = data?.stats.sales || [];
+
     let orders = [];
     let sales = [];
     let totalOrders = 0;
     let totalSales = 0;
 
-    const fullOrdersData = [4, 6, 8, 15, 12, 8, 9, 11, 8, 5, 13, 12, 14];
-    const fullSalesData = [5, 10, 10, 18, 11, 6, 4, 7, 8, 12, 16, 13];
-
     if (filterOption === '1 Month') {
       orders = [fullOrdersData[currentMonthIndex]]; 
       sales = [fullSalesData[currentMonthIndex]];
     } else if (filterOption === '3 Months') {
-      orders = fullOrdersData.slice(currentMonthIndex - 2, currentMonthIndex + 1);
-      sales = fullSalesData.slice(currentMonthIndex - 2, currentMonthIndex + 1);
+      orders = fullOrdersData.slice(Math.max(currentMonthIndex - 2, 0), currentMonthIndex + 1);
+      sales = fullSalesData.slice(Math.max(currentMonthIndex - 2, 0), currentMonthIndex + 1);
     } else if (filterOption === '6 Months') {
-      orders = fullOrdersData.slice(currentMonthIndex - 5, currentMonthIndex + 1); 
-      sales = fullSalesData.slice(currentMonthIndex - 5, currentMonthIndex + 1);
+      orders = fullOrdersData.slice(Math.max(currentMonthIndex - 5, 0), currentMonthIndex + 1); 
+      sales = fullSalesData.slice(Math.max(currentMonthIndex - 5, 0), currentMonthIndex + 1);
     } else if (filterOption === 'Year 2023') {
       orders = fullOrdersData;
       sales = fullSalesData;
@@ -122,14 +137,13 @@ const Dashboard = () => {
 
   const handleClearFilter = () => {
     setFilter('');
-    applyFilter('Year 2023'); // Resets to full year
+    applyFilter('Year 2023', apiData); 
   };
 
   if (!isClient) return null;
 
   return (
-    <Box p={3} bgcolor="#f4f6f8" maxWidth="100%">
-      {/* Filter Indicator Section */}
+    <Box p={3} bgcolor="#f4f6f8" maxWidth="100%" height="100%">
       <Box display="flex" alignItems="center" mb={2} flexWrap="wrap">
         {filter && (
           <>
@@ -151,7 +165,6 @@ const Dashboard = () => {
         )}
       </Box>
 
-      {/* Chart Section */}
       <Box bgcolor="white" p={3} borderRadius={2} boxShadow={1} overflow="hidden" position="relative">
         <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap">
           <Button
@@ -168,16 +181,12 @@ const Dashboard = () => {
             <MenuItem onClick={() => handleFilterSelect('6 Months')}>6 Months</MenuItem>
             <MenuItem onClick={() => handleFilterSelect('Year 2023')}>A Year</MenuItem>
           </Menu>
-          {/* <Typography variant="h6" fontWeight="bold" sx={{ position: 'absolute', top: 16, right: 16 }}>
-            Total Sale: ${filteredData.totalSales || 0}
-          </Typography> */}
         </Box>
         <Box height={{ xs: 300, sm: 400 }} width="100%">
           <Bar data={data} options={options} />
         </Box>
       </Box>
 
-   
       <Box display="flex" flexWrap="wrap" justifyContent="space-between" mt={3} gap={2}>
         {stats.map((stat, index) => (
           <Card

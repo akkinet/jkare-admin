@@ -9,6 +9,7 @@ import {
   FaUserCog,
   FaCog,
   FaUserShield,
+  FaPrescription
 } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,165 +20,209 @@ const Sidebar = () => {
 
   useEffect(() => {
     if (router && router.pathname) {
-      // Set active component based on current path, with fallback if path is '/'
       const currentPath = router.pathname.slice(1) || "dashboard";
       setActiveComponent(currentPath);
     }
   }, [router]);
 
+  const handleSetActive = (component) => {
+    setActiveComponent(component);
+  };
+
   return (
     <div className="flex h-[100vh]">
-      <div className="w-64 bg-customlightGray p-6 shadow-lg flex flex-col items-center">
+      <div className="bg-customlightGray p-4 shadow-lg flex flex-col items-center transition-all duration-300 ease-in-out w-20 md:w-64 lg:w-64">
         <div className="mb-8">
           <img
-            className="lg:h-14 max-w-sm: h-9 lg:py-2"
-            src="https://images.squarespace-cdn.com/content/v1/60aefe75c1a8f258e529fbac/1622081456984-G5MG4OZZJFVIM3R01YN7/jkare-2.png?format=1500w"
+            className="h-8 md:hidden"
+            src="https://s3.ap-south-1.amazonaws.com/medicom.hexerve/jkare+logo+icon.png"
+            alt="Jkare Icon Logo"
+          />
+          <img
+            className="hidden md:block h-14 lg:py-2"
+            src="https://s3.ap-south-1.amazonaws.com/medicom.hexerve/jkare-2.png"
             alt="Jkare Logo"
           />
         </div>
         <ul className="space-y-4 w-full">
           <li>
-            <Link href="/"
+            <Link
+              href="/"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "dashboard"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
+              onClick={() => handleSetActive("dashboard")}
             >
               <FaChartLine
-                className={`mr-3 ${
+                className={`text-xl ${
                   activeComponent === "dashboard"
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
               />
-              Dashboard
+              <span className="hidden md:inline ml-3">Dashboard</span>
             </Link>
           </li>
           <li>
-            <Link href="/customer"
+            <Link
+              href="/customer"
               className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "customers"
+                activeComponent === "customer"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
+              onClick={() => handleSetActive("customer")}
             >
               <FaUsers
-                className={`mr-3 ${
-                  activeComponent === "customers"
+                className={`text-xl ${
+                  activeComponent === "customer"
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
               />
-              Customers
+              <span className="hidden md:inline ml-3">Customers</span>
             </Link>
           </li>
           <li>
-            <Link href="/billing"
+            <Link
+              href="/prescription"
+              className={`w-full flex items-center p-2 rounded group ${
+                activeComponent === "prescription"
+                  ? "bg-customPink text-white"
+                  : "text-customDarkGray"
+              } hover:bg-customPink hover:text-white`}
+              onClick={() => handleSetActive("prescription")}
+            >
+              <FaPrescription
+                className={`text-xl ${
+                  activeComponent === "prescription"
+                    ? "text-white"
+                    : "text-customBlue"
+                } group-hover:text-white`}
+              />
+              <span className="hidden md:inline ml-3">Prescription</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/billing"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "billing"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
+              onClick={() => handleSetActive("billing")}
             >
               <FaFileInvoiceDollar
-                className={`mr-3 ${
+                className={`text-xl ${
                   activeComponent === "billing"
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
               />
-              Billing & Payments
+              <span className="hidden md:inline ml-3">Billing & Payments</span>
             </Link>
           </li>
           <li>
-            <Link href="/vendors"
+            <Link
+              href="/vendors"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "vendors"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
+              onClick={() => handleSetActive("vendors")}
             >
               <FaStore
-                className={`mr-3 ${
+                className={`text-xl ${
                   activeComponent === "vendors"
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
               />
-              Vendors
+              <span className="hidden md:inline ml-3">Vendors</span>
             </Link>
           </li>
           <li>
-            <Link href="/products"
+            <Link
+              href="/products"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "products"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
+              onClick={() => handleSetActive("products")}
             >
               <FaBox
-                className={`mr-3 ${
+                className={`text-xl ${
                   activeComponent === "products"
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
               />
-              Products
+              <span className="hidden md:inline ml-3">Products</span>
             </Link>
           </li>
           <li>
-            <Link href="/userManagement"
+            <Link
+              href="/userManagement"
               className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "user-management"
+                activeComponent === "userManagement"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
+              onClick={() => handleSetActive("userManagement")}
             >
               <FaUserCog
-                className={`mr-3 ${
-                  activeComponent === "user-management"
+                className={`text-xl ${
+                  activeComponent === "userManagement"
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
               />
-              User Management
+              <span className="hidden md:inline ml-3">User Management</span>
             </Link>
           </li>
           <li>
-            <Link href="/accountSettings"
+            <Link
+              href="/accountSettings"
               className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "account-settings"
+                activeComponent === "accountSettings"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
+              onClick={() => handleSetActive("accountSettings")}
             >
               <FaCog
-                className={`mr-3 ${
-                  activeComponent === "account-settings"
+                className={`text-xl ${
+                  activeComponent === "accountSettings"
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
               />
-              Account Settings
+              <span className="hidden md:inline ml-3">Account Settings</span>
             </Link>
           </li>
           <li>
-            <Link href="/userRoles"
+            <Link
+              href="/userRoles"
               className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "user-roles"
+                activeComponent === "userRoles"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
+              onClick={() => handleSetActive("userRoles")}
             >
               <FaUserShield
-                className={`mr-3 ${
-                  activeComponent === "user-roles"
+                className={`text-xl ${
+                  activeComponent === "userRoles"
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
               />
-              User Roles
+              <span className="hidden md:inline ml-3">User Roles</span>
             </Link>
           </li>
         </ul>
