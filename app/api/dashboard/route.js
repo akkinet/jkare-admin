@@ -19,26 +19,26 @@ function formatDate(date) {
 export const GET = async (req, ctx) => {
   try {
     const { searchParams } = new URL(req.url);
-    const today = new Date();
-    let from;
+    let year;
 
-    if (searchParams.size > 0) from = searchParams.get("from");
-    else from = formatDate(new Date(`01/01/${today.getFullYear()}`));
+    if (searchParams.size > 0) {
+      year = searchParams.get("year");
+    } else {
+      const today = new Date();
+      year = today.getFullYear().toString();
+    }
 
-    const to = formatDate(today);
-
-    console.log("date", from, to);
     const params = {
       TableName: "Orders",
-      FilterExpression: "#od BETWEEN :start AND :end",
+      FilterExpression: "contains(#od, :year)",
       ExpressionAttributeNames: {
         "#od": "order_date",
       },
       ExpressionAttributeValues: {
-        ":start": from,
-        ":end": to
+        ":year": year,
       },
     };
+
     const command = new ScanCommand(params);
 
     const result = await ddbDocClient.send(command);
