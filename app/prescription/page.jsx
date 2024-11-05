@@ -178,7 +178,7 @@ export default function Prescription() {
   const handleViewMore = (order) => {
     setOrderDetails(order);
     setHighlightedOrderId(order.id);
-    setShowOrderModal(true); // Open the modal
+    setShowOrderModal(true);
   };
 
   const handleApproveCancel = (id, newStatus) => {
@@ -231,10 +231,10 @@ export default function Prescription() {
   );
 
   return (
-    <div className="container mx-auto p-4 bg-[#f4f6f8] h-full">
+    <div className="container p-4 bg-[#f4f6f8] h-full max-w-full">
       <h1 className="text-2xl font-bold mb-4 text-center">Prescription Approvals</h1>
 
-      <div className="flex flex-col sm:flex-row justify-between mb-4">
+      <div className="flex flex-col sm:flex-row justify-between mb-4 items-center">
         {/* Search Bar */}
         <div className="flex justify-center mb-4 sm:mb-0">
           <input

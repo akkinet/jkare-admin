@@ -14,12 +14,11 @@ import {
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import ClearIcon from "@mui/icons-material/Clear";
 
-// to avoid server-side issue
+// to avoid server-side issues
 const Bar = dynamic(() => import("react-chartjs-2").then((mod) => mod.Bar), {
   ssr: false,
 });
 
-// Chart.js imports
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -49,25 +48,31 @@ const Dashboard = () => {
   });
   const [apiData, setApiData] = useState(null);
   const [isClient, setIsClient] = useState(false);
-  console.log("Dashboard page is rendered");
 
   useEffect(() => {
     setIsClient(true);
-    fetchData();
+    const currentYear = new Date().getFullYear();
+    fetchData(currentYear); // Fetch data for the current year on load
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (year) => {
     try {
-      const response = await fetch("http://localhost:3000/api/dashboard");
+      const response = await fetch(
+        `http://localhost:3000/api/dashboard?year=${year}`
+      );
       const data = await response.json();
       setApiData(data);
-      applyFilter("Year 2023", data);
+      setFilteredData({
+        orders: data.stats.orders,
+        sales: data.stats.sales,
+        totalOrders: data.totalOrders,
+        totalSales: data.totalSales,
+      });
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
 
-  const currentMonthIndex = new Date().getMonth();
   const monthLabels = [
     "Jan",
     "Feb",
@@ -82,7 +87,6 @@ const Dashboard = () => {
     "Nov",
     "Dec",
   ];
-
   const data = {
     labels: monthLabels,
     datasets: [
@@ -102,12 +106,10 @@ const Dashboard = () => {
   const options = {
     responsive: true,
     plugins: {
-      legend: {
-        position: "top",
-      },
+      legend: { position: "top" },
       title: {
         display: true,
-        text: `Statistic Chart`,
+        text: `Statistic Chart for ${filter || new Date().getFullYear()}`,
       },
     },
     maintainAspectRatio: false,
@@ -136,64 +138,19 @@ const Dashboard = () => {
     },
   ];
 
-  const openMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+  const openMenu = (event) => setAnchorEl(event.currentTarget);
+  const closeMenu = () => setAnchorEl(null);
 
-  const closeMenu = () => {
-    setAnchorEl(null);
-  };
-
-  const handleFilterSelect = (selectedFilter) => {
-    setFilter(selectedFilter);
-    applyFilter(selectedFilter, apiData);
+  const handleFilterSelect = (selectedYear) => {
+    setFilter(selectedYear);
+    fetchData(selectedYear);
     closeMenu();
   };
 
-  const applyFilter = (filterOption, data) => {
-    const fullOrdersData = data?.stats.orders || [];
-    const fullSalesData = data?.stats.sales || [];
-
-    let orders = [];
-    let sales = [];
-    let totalOrders = 0;
-    let totalSales = 0;
-
-    if (filterOption === "1 Month") {
-      orders = [fullOrdersData[currentMonthIndex]];
-      sales = [fullSalesData[currentMonthIndex]];
-    } else if (filterOption === "3 Months") {
-      orders = fullOrdersData.slice(
-        Math.max(currentMonthIndex - 2, 0),
-        currentMonthIndex + 1
-      );
-      sales = fullSalesData.slice(
-        Math.max(currentMonthIndex - 2, 0),
-        currentMonthIndex + 1
-      );
-    } else if (filterOption === "6 Months") {
-      orders = fullOrdersData.slice(
-        Math.max(currentMonthIndex - 5, 0),
-        currentMonthIndex + 1
-      );
-      sales = fullSalesData.slice(
-        Math.max(currentMonthIndex - 5, 0),
-        currentMonthIndex + 1
-      );
-    } else if (filterOption === "Year 2023") {
-      orders = fullOrdersData;
-      sales = fullSalesData;
-    }
-
-    totalOrders = orders.reduce((acc, val) => acc + val, 0);
-    totalSales = sales.reduce((acc, val) => acc + val, 0);
-
-    setFilteredData({ orders, sales, totalOrders, totalSales });
-  };
-
   const handleClearFilter = () => {
-    setFilter("");
-    applyFilter("Year 2023", apiData);
+    const currentYear = new Date().getFullYear().toString();
+    setFilter(""); // Clear the filter label from the UI
+    fetchData(currentYear); // Fetch data for the current year in the background
   };
 
   if (!isClient) return null;
@@ -222,13 +179,17 @@ const Dashboard = () => {
           >
             Filter
           </Button>
-          <Box display="flex" alignItems="center" mb={2} flexWrap="wrap" 
-               sx={{position:"absolute" , top: 18 , left: 140}}
-             >
+          <Box
+            display="flex"
+            alignItems="center"
+            mb={2}
+            flexWrap="wrap"
+            sx={{ position: "absolute", top: 18, left: 140 }}
+          >
             {filter && (
               <>
                 <Chip
-                  label={`Dates: ${filter}`}
+                  label={`Year: ${filter}`}
                   onDelete={handleClearFilter}
                   deleteIcon={<ClearIcon />}
                   sx={{ marginRight: 2 }}
@@ -244,22 +205,20 @@ const Dashboard = () => {
               </>
             )}
           </Box>
+
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={closeMenu}
           >
-            <MenuItem onClick={() => handleFilterSelect("1 Month")}>
-              1 Month
+            <MenuItem onClick={() => handleFilterSelect("2024")}>
+              Year 2024
             </MenuItem>
-            <MenuItem onClick={() => handleFilterSelect("3 Months")}>
-              3 Months
+            <MenuItem onClick={() => handleFilterSelect("2023")}>
+              Year 2023
             </MenuItem>
-            <MenuItem onClick={() => handleFilterSelect("6 Months")}>
-              6 Months
-            </MenuItem>
-            <MenuItem onClick={() => handleFilterSelect("Year 2023")}>
-              A Year
+            <MenuItem onClick={() => handleFilterSelect("2022")}>
+              Year 2022
             </MenuItem>
           </Menu>
         </Box>
