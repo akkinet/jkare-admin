@@ -25,7 +25,7 @@ export const GET = async (req) => {
     }else{
       params = {
         TableName: "Orders",
-        FilterExpression: "#os = :os AND #ps BETWEEN :ps1 AND :ps2",
+        FilterExpression: "#os = :os AND #ps IN (:ps1, :ps2)",
         ExpressionAttributeNames: {
           "#ps": "prescription_status",
           "#os": "order_status",
