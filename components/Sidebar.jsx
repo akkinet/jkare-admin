@@ -127,17 +127,17 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
-              href="/vendors"
+              href="/vendor"
               className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "vendors"
+                activeComponent === "vendor"
                   ? "bg-customPink text-white"
                   : "text-customDarkGray"
               } hover:bg-customPink hover:text-white`}
-              onClick={() => handleSetActive("vendors")}
+              onClick={() => handleSetActive("vendor")}
             >
               <FaStore
                 className={`text-xl ${
-                  activeComponent === "vendors"
+                  activeComponent === "vendor"
                     ? "text-white"
                     : "text-customBlue"
                 } group-hover:text-white`}
