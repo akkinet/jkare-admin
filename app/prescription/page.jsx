@@ -21,6 +21,7 @@ export default function Prescription() {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [infoRequestedOrders, setInfoRequestedOrders] = useState({});
 
   useEffect(() => {
     fetchOrders();
@@ -35,12 +36,12 @@ export default function Prescription() {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:3000/api/prescription`);
+      const response = await fetch(`/api/prescription`);
       if (!response.ok) throw new Error("Failed to fetch orders");
 
       const data = await response.json();
       if (data && data.Items) {
-        setOrders(data.Items.map(order => ({ ...order, status: "Pending" }))); 
+        setOrders(data.Items.map(order => ({ ...order, status: "Pending" })));
       } else {
         setOrders([]);
       }
@@ -54,23 +55,22 @@ export default function Prescription() {
   const applyFilters = () => {
     let filtered = orders;
 
-    // Filter by status
-    if (status !== "Pending") {
-      filtered = filtered.filter((order) => order.status === status);
-    } else {
+    if (status === "Pending") {
       filtered = filtered.filter((order) => order.status === "Pending");
+    } else if (status === "Completed") {
+      filtered = filtered.filter((order) => order.status === "Completed");
+    } else if (status === "Cancelled") {
+      filtered = filtered.filter((order) => order.status === "Cancelled");
     }
 
-    // Filter by prescription status
     if (prescriptionFilter !== "both") {
       filtered = filtered.filter((order) =>
         prescriptionFilter === "yes"
-          ? order.prescription_status === "Recieved"
+          ? order.prescription_status === "Received"
           : order.prescription_status === "Pending"
       );
     }
 
-    // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(
         (order) =>
@@ -98,7 +98,7 @@ export default function Prescription() {
 
   const handleApproveCancel = (id, newStatus) => {
     const updatedOrders = orders.map((order) =>
-      order.id === id ? { ...order, status: newStatus } : order
+      order.id === id ? { ...order, status: newStatus === "approved" ? "Completed" : "Cancelled" } : order
     );
     setOrders(updatedOrders);
     setOrderDetails(null);
@@ -117,17 +117,21 @@ export default function Prescription() {
     const updatedOrders = orders.map((order) =>
       order.id === selectedOrder.id
         ? {
-            ...order,
-            status: "Cancelled",
-            cancellationDetails: {
-              reason: emailDetails.reason,
-              message: emailDetails.message,
-            },
-          }
+          ...order,
+          status: "Cancelled",
+          cancellationDetails: {
+            reason: emailDetails.reason,
+            message: emailDetails.message,
+          },
+        }
         : order
     );
 
     setOrders(updatedOrders);
+    setInfoRequestedOrders((prev) => ({
+      ...prev,
+      [selectedOrder.id]: emailDetails.message,
+    }));
     setShowCancelModal(false);
     setOrderDetails(null);
     setShowRequestInfoModal(false);
@@ -176,36 +180,19 @@ export default function Prescription() {
 
               <div className="flex space-x-4">
                 <label>
-                  <input
-                    type="radio"
+                  <select
                     name="prescriptionFilter"
-                    value="both"
-                    checked={prescriptionFilter === "both"}
+                    value={prescriptionFilter}
                     onChange={(e) => setPrescriptionFilter(e.target.value)}
-                  />{" "}
-                  Both Prescriptions
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="prescriptionFilter"
-                    value="yes"
-                    checked={prescriptionFilter === "yes"}
-                    onChange={(e) => setPrescriptionFilter(e.target.value)}
-                  />{" "}
-                  Prescription Received
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="prescriptionFilter"
-                    value="no"
-                    checked={prescriptionFilter === "no"}
-                    onChange={(e) => setPrescriptionFilter(e.target.value)}
-                  />{" "}
-                  Prescription Pending
+                    className="border p-2 rounded"
+                  >
+                    <option value="both">All Orders Prescription only</option>
+                    <option value="yes">Prescription Received</option>
+                    <option value="no">Prescription Pending</option>
+                  </select>
                 </label>
               </div>
+
             </div>
           </div>
 
@@ -280,7 +267,7 @@ export default function Prescription() {
             </table>
           </div>
 
-           {showOrderModal && (
+          {showOrderModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
               <div className="bg-white p-6 rounded shadow-md w-full max-w-7xl">
                 <h2 className="text-xl font-bold mb-2 border-b-2 border-gray-300">Order Details</h2>
@@ -296,31 +283,39 @@ export default function Prescription() {
                           <p><strong>Order Date:</strong> {orderDetails.order_date}</p>
                         </div>
                         <div>
-                          <p><strong>Billing Address:</strong> {orderDetails.billing_address}</p>
-                          <p><strong>Shipping Address:</strong> {orderDetails.shipping_address}</p>
-                          <p><strong>Insurance Received:</strong> {orderDetails.insuranceReceived ? "Yes" : "No"}</p>
-                          {orderDetails.insuranceReceived && (
-                            <p><strong>Insurance Company:</strong> {orderDetails.insurance_company}</p>
-                          )}
-                          {orderDetails.insuranceFile && (
+                          <p><strong>Billing Address:</strong> {`${orderDetails.billing_address.line1}, ${orderDetails.billing_address.city}, ${orderDetails.billing_address.state}, ${orderDetails.billing_address.postal_code}, ${orderDetails.billing_address.country}`}</p>
+                          <p><strong>Shipping Address:</strong> {`${orderDetails.shipping_address.line1}, ${orderDetails.shipping_address.city}, ${orderDetails.shipping_address.state}, ${orderDetails.shipping_address.postal_code}, ${orderDetails.shipping_address.country}`}</p>
+                          <p><strong>Insurance Received:</strong> {orderDetails.insurance_pdf ? "Yes" : "No"}</p>
+                          {orderDetails.insurance_pdf && (
                             <div>
-                              <strong>Insurance File:</strong>{" "}
+                              <strong>Insurance PDF:</strong>{" "}
                               <button className="bg-pink-500 text-white px-3 py-1 rounded">
-                                {orderDetails.insuranceFile}
+                                View Insurance
                               </button>
                             </div>
                           )}
                         </div>
                       </div>
-                      {orderDetails.status === "cancelled" && orderDetails.cancellationDetails && (
+
+                      {/* Show Cancellation Details if Order is Cancelled */}
+                      {orderDetails.status === "Cancelled" && orderDetails.cancellationDetails && (
                         <div className="mt-4 bg-red-100 p-4 rounded">
                           <h3 className="text-lg font-bold text-red-600 mb-2">Cancellation Details</h3>
                           <p><strong>Reason:</strong> {orderDetails.cancellationDetails.reason}</p>
                           <p><strong>Message:</strong> {orderDetails.cancellationDetails.message}</p>
                         </div>
                       )}
+
+                      {/* Show Requested Info if Set */}
+                      {infoRequestedOrders[orderDetails.id] && (
+                        <div className="mt-4 bg-yellow-100 p-4 rounded">
+                          <h3 className="text-lg font-bold text-yellow-600 mb-2">Requested Information</h3>
+                          <p><strong>Message:</strong> {infoRequestedOrders[orderDetails.id]}</p>
+                        </div>
+                      )}
                     </div>
 
+                    {/* Product Details Section */}
                     <div className="border-t-2 border-gray-300 mt-4">
                       <h3 className="text-lg font-bold mb-2">Product Details</h3>
                       <div className="overflow-y-auto max-h-60">
@@ -335,7 +330,6 @@ export default function Prescription() {
                               <th className="py-2 px-4 w-12">Qty</th>
                               <th className="py-2 px-4 w-28">Item Value</th>
                               <th className="py-2 px-4 w-20">Prescription</th>
-                              <th className="py-2 px-4 w-20">Download</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -345,28 +339,17 @@ export default function Prescription() {
                                 <td className="py-2 px-4 text-center">{item.product_id}</td>
                                 <td className="py-2 px-4 text-center">
                                   <img
-                                    src={`${item.image}`}
+                                    src={item.image}
                                     alt={item.product_name}
                                     className="h-12 w-12 object-cover"
                                   />
                                 </td>
                                 <td className="py-2 px-4 text-center">{item.product_name}</td>
-                                <td className="py-2 px-4 text-center">
-                                  {item.description ? item.description : "N/A"}
-                                </td>
+                                <td className="py-2 px-4 text-center line-clamp-2">{item.description}</td>
                                 <td className="py-2 px-4 text-center">X{item.quantity}</td>
-                                <td className="py-2 px-4 text-center">$ {item.price}/-</td>
+                                <td className="py-2 px-4 text-center">${item.price}/-</td>
                                 <td className="py-2 px-4 text-center">
                                   {item.prescription_required ? "Yes" : "No"}
-                                </td>
-                                <td className="py-2 px-4 text-center">
-                                  {item.prescription_required && item.prescription_file ? (
-                                    <button className="bg-pink-500 text-white px-3 py-1 rounded">
-                                      {item.prescription_file}
-                                    </button>
-                                  ) : (
-                                    "N/A"
-                                  )}
                                 </td>
                               </tr>
                             ))}
@@ -382,7 +365,7 @@ export default function Prescription() {
                       >
                         Close
                       </button>
-                      {orderDetails.status === "pending" && (
+                      {orderDetails.status === "Pending" && !infoRequestedOrders[orderDetails.id] && (
                         <div className="flex space-x-4">
                           <button
                             className="bg-green-500 text-white px-4 py-2 rounded"
@@ -443,6 +426,7 @@ export default function Prescription() {
                   <input
                     type="email"
                     value={emailDetails.to}
+                    disabled
                     onChange={(e) =>
                       setEmailDetails((prev) => ({ ...prev, to: e.target.value }))
                     }
@@ -521,7 +505,13 @@ export default function Prescription() {
                   </button>
                   <button
                     className="bg-yellow-500 text-white px-4 py-2 rounded"
-                    onClick={handleSendEmail}
+                    onClick={() => {
+                      setInfoRequestedOrders((prev) => ({
+                        ...prev,
+                        [orderDetails.id]: emailDetails.message,
+                      }));
+                      setShowRequestInfoModal(false);
+                    }}
                   >
                     Send
                   </button>
