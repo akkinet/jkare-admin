@@ -1,6 +1,6 @@
 "use client"
 import { useState } from 'react';
-import { FaUserCircle, FaBell, FaCog, FaSignOutAlt, FaUserAlt, FaExchangeAlt, FaQuestionCircle } from 'react-icons/fa';
+import { FaUserCircle, FaBell, FaCog, FaSignOutAlt, FaUserAlt, FaQuestionCircle } from 'react-icons/fa';
 import Image from 'next/image';
 
 export default function Navbar({ isLoggedIn, user }) {
