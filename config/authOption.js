@@ -1,4 +1,4 @@
-import CredentialsProvider from "next-auth/providers/credentials"
+import CredentialsProvider from "next-auth/providers/credentials";
 
 export const authOptions = {
   providers: [
@@ -15,20 +15,33 @@ export const authOptions = {
         },
       },
       async authorize(credentials, req) {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/user/login`,
-          {
-            method: "POST",
-            body: JSON.stringify(credentials),
-            headers: { "Content-Type": "application/json" },
+        try {
+          const res = await fetch(
+            `${process.env.API_URL}/user/login`,
+            {
+              method: "POST",
+              body: JSON.stringify(credentials),
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+      
+          const user = await res.json();
+          if (res.ok && !user?.error) {
+            return user;
+          } else {
+            console.error("Login error:", user.error);
+            return null;
           }
-        );
-        const user = await res.json();
-        if (!user?.error) {
-          return user;
+        } catch (error) {
+          console.error("Fetch error:", error);
+          return null;
         }
-        return null;
-      },
+      }
     }),
-  ]
+  ],
+  callbacks: {
+    async redirect({ url, baseUrl }) {
+      return baseUrl
+    }
+}
 };
