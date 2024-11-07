@@ -1,13 +1,21 @@
-"use client"
-import { useState } from 'react';
-import { FaUserCircle, FaBell, FaCog, FaSignOutAlt, FaUserAlt, FaQuestionCircle } from 'react-icons/fa';
-import Image from 'next/image';
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { FaUserCircle, FaBell, FaCog, FaSignOutAlt, FaUserAlt, FaQuestionCircle } from "react-icons/fa";
+import Image from "next/image";
 
 export default function Navbar({ isLoggedIn, user }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [notifications, setNotifications] = useState(2);
+  const router = useRouter();
 
   const toggleDropdown = () => setShowDropdown(!showDropdown);
+
+  const handleLoginRedirect = () => {
+    if (!isLoggedIn) {
+      router.push("/login"); // Redirect to the login page
+    }
+  };
 
   return (
     <div className="flex items-center p-4 px-8 bg-gray-100 border-b border-gray-300 justify-end">
@@ -22,7 +30,10 @@ export default function Navbar({ isLoggedIn, user }) {
       </div>
 
       {/* User Icon */}
-      <div className="cursor-pointer" onClick={toggleDropdown}>
+      <div
+        className="cursor-pointer"
+        onClick={isLoggedIn ? toggleDropdown : handleLoginRedirect}
+      >
         {isLoggedIn ? (
           <Image
             src={user.image}
@@ -44,9 +55,8 @@ export default function Navbar({ isLoggedIn, user }) {
               <p className="font-semibold">{user.name}</p>
               <p className="text-sm text-gray-500">{user.email}</p>
               <p className="text-sm text-white bg-customPink p-1 shadow-md hover:bg-customBlue hover:shadow-lg transition duration-300 ease-in-out">
-                Role : {user.role}
+                Role: {user.role}
               </p>
-
             </div>
           </div>
           <div className="flex flex-col p-2">
