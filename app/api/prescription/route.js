@@ -33,7 +33,7 @@ export const GET = async (req) => {
         ExpressionAttributeValues: {
           ":ps1": "Pending",
           ":os": "Pending",
-          ":ps2": "Recieved",
+          ":ps2": "Received",
         },
       };
     }

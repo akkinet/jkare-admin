@@ -39,7 +39,7 @@ export default function Prescription({ initialOrders, error }) {
     if (prescriptionFilter !== "both") {
       filtered = filtered.filter((order) =>
         prescriptionFilter === "yes"
-          ? order.prescription_status === "Recieved"
+          ? order.prescription_status === "Received"
           : order.prescription_status === "Pending"
       );
     }
