@@ -26,8 +26,10 @@ export const POST = async (req) => {
     if (!isMatch)
       return NextResponse.json({ msg: "Password is wrong!" }, { status: 400 });
 
+    delete user.password;
+
     return NextResponse.json(
-      { name: user.fullname, email: user.email },
+      user,
       { status: 200 }
     );
   } catch (err) {

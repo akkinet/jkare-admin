@@ -1,9 +1,18 @@
-"use client"
-import { useState } from 'react';
-import { FaUserCircle, FaBell, FaCog, FaSignOutAlt, FaUserAlt, FaQuestionCircle } from 'react-icons/fa';
-import Image from 'next/image';
+"use client";
+import { useState } from "react";
+import {
+  FaUserCircle,
+  FaBell,
+  FaCog,
+  FaSignOutAlt,
+  FaUserAlt,
+  FaQuestionCircle,
+} from "react-icons/fa";
+import Image from "next/image";
+// import { useSession, signIn, signOut } from "next-auth/react";
 
-export default function Navbar({ isLoggedIn, user }) {
+export default function Navbar({isLoggedIn, user}) {
+  // const { data: session } = useSession();
   const [showDropdown, setShowDropdown] = useState(false);
   const [notifications, setNotifications] = useState(2);
 
@@ -36,8 +45,15 @@ export default function Navbar({ isLoggedIn, user }) {
         )}
       </div>
 
+      {/* {session && (
+        <div className="cursor-pointer" onClick={toggleDropdown}>
+          Signed in as {session.user.email} <br />
+          <button onClick={() => signOut()}>Sign out</button>
+        </div>
+      )} */}
+
       {/* Dropdown Menu */}
-      {showDropdown && isLoggedIn && (
+      {showDropdown && (
         <div className="absolute right-10 top-16 w-64 bg-white shadow-lg rounded-lg mt-2 z-10">
           <div className="flex items-center p-4 border-b border-gray-200">
             <div>
@@ -46,7 +62,6 @@ export default function Navbar({ isLoggedIn, user }) {
               <p className="text-sm text-white bg-customPink p-1 shadow-md hover:bg-customBlue hover:shadow-lg transition duration-300 ease-in-out">
                 Role : {user.role}
               </p>
-
             </div>
           </div>
           <div className="flex flex-col p-2">
@@ -63,7 +78,9 @@ export default function Navbar({ isLoggedIn, user }) {
               <FaQuestionCircle className="mr-2 text-gray-600" /> Help Center
             </button>
             <button className="flex items-center p-2 hover:bg-gray-100 rounded-md">
-              <FaSignOutAlt className="mr-2 text-gray-600" /> Logout
+              <FaSignOutAlt className="mr-2 text-gray-600"  
+              // onClick={() => signIn()} 
+              /> Logout
             </button>
           </div>
         </div>
