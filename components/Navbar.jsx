@@ -12,11 +12,7 @@ import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 
-export default function Navbar(
-  {
-    // isLoggedIn, user
-  }
-) {
+export default function Navbar() {
   const { data: session } = useSession();
   const [showDropdown, setShowDropdown] = useState(false);
   const [notifications, setNotifications] = useState(2);
@@ -62,9 +58,9 @@ export default function Navbar(
             <div>
               <p className="font-semibold">{session.user.name}</p>
               <p className="text-sm text-gray-500">{session.user.email}</p>
-              {/* <p className="text-sm text-white bg-customPink p-1 shadow-md hover:bg-customBlue hover:shadow-lg transition duration-300 ease-in-out">
-                Role : {user.role}
-              </p> */}
+              <p className="text-sm text-white bg-customPink p-1 shadow-md hover:bg-customBlue hover:shadow-lg transition duration-300 ease-in-out">
+                Role : {session.user.role}
+              </p>
             </div>
           </div>
           <div className="flex flex-col p-2">

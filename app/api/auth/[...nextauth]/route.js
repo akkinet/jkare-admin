@@ -49,11 +49,26 @@ export const authOptions = {
       }
     }),
   ],
+  callbacks: {
+    async session({ session, token, user }) {
+      session.user.role = token.role;
+      session.user.actions = token.actions;
+
+      return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+        token.actions = user.actions;
+      }
+
+      return token;
+    },
+  },
   pages: {
     signIn: "/login"
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: true
 };
 
 const handler = NextAuth(authOptions);
