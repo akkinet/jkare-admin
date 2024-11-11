@@ -1,10 +1,13 @@
-import Dashboard from '@/components/Dashboard'
+'use client'
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+const Home = () => {
+  const router = useRouter();
+  useEffect(() => {
+    router.push('/dashboard');
+  }, [])
 
-const Home = async () => {
-  const today = new Date();
-  const res = await fetch(`${process.env.API_URL}/dashboard?year=${today.getFullYear()}`)
-  const data = await res.json();
-  return <Dashboard data={data} />
+  return <div>..loading</div>
 }
 
 export default Home;

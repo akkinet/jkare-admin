@@ -80,10 +80,9 @@ export default function Navbar(
             <button className="flex items-center p-2 hover:bg-gray-100 rounded-md">
               <FaQuestionCircle className="mr-2 text-gray-600" /> Help Center
             </button>
-            <button className="flex items-center p-2 hover:bg-gray-100 rounded-md">
+            <button onClick={() => signOut()} className="flex items-center p-2 hover:bg-gray-100 rounded-md">
               <FaSignOutAlt
                 className="mr-2 text-gray-600"
-                onClick={() => signOut()}
               />{" "}
               Logout
             </button>

@@ -1,4 +1,4 @@
-import Prescription from "../../components/Prescription";
+import Prescription from "@/components/Prescription";
 
 async function fetchPrescriptions() {
   try {

@@ -1,4 +1,14 @@
+// import NextAuth from "next-auth";
+// import { authOptions } from "@/config/authOption";
+
+// const handler = NextAuth(authOptions);
+// export { handler as GET, handler as POST };
+
+// export default NextAuth.default(authOptions)
+
+import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+// Add more providers if needed
 
 export const authOptions = {
   providers: [
@@ -39,9 +49,13 @@ export const authOptions = {
       }
     }),
   ],
-  callbacks: {
-    async redirect({ url, baseUrl }) {
-      return baseUrl
-    }
-}
+  pages: {
+    signIn: "/login"
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: true
 };
+
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };

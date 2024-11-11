@@ -11,6 +11,8 @@ function page() {
       await signIn("credentials", {
         email,
         password,
+        redirect: true,
+        callbackUrl: "/",
       });
     }catch(err){
       console.log("err", err);

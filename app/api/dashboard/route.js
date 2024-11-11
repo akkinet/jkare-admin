@@ -2,20 +2,6 @@ import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ddbDocClient } from "@/config/docClient";
 import { NextResponse } from "next/server";
 
-function formatDate(date) {
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  };
-
-  return date.toLocaleString("en-US", options);
-}
-
 export const GET = async (req, ctx) => {
   try {
     const { searchParams } = new URL(req.url);
