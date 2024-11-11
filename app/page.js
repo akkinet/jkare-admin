@@ -1,13 +1,14 @@
 'use client'
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+
 const Home = () => {
   const router = useRouter();
   useEffect(() => {
-    router.push('/dashboard');
-  }, [])
+    router.replace("/dashboard");
+  }, [router]);
 
-  return <div>..loading</div>
+  return null;
 }
 
 export default Home;
