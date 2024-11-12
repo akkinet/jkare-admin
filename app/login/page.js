@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 function page() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const submitHandler = async (e) => {
     try{
       e.preventDefault();
@@ -12,7 +13,7 @@ function page() {
         email,
         password,
         redirect: true,
-        callbackUrl: "/",
+        callbackUrl: "/dashboard",
       });
     }catch(err){
       console.log("err", err);
