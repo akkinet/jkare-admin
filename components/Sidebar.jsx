@@ -67,7 +67,7 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
-              href="/customer"
+              href="/dashboard/customer"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "customer"
                   ? "bg-customPink text-white"
@@ -87,7 +87,7 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
-              href="/prescription"
+              href="/dashboard/prescription"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "prescription"
                   ? "bg-customPink text-white"
@@ -107,7 +107,7 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
-              href="/billing"
+              href="/dashboard/billing"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "billing"
                   ? "bg-customPink text-white"
@@ -127,7 +127,7 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
-              href="/vendor"
+              href="/dashboard/vendor"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "vendor"
                   ? "bg-customPink text-white"
@@ -147,7 +147,7 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
-              href="/products"
+              href="/dashboard/products"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "products"
                   ? "bg-customPink text-white"
@@ -167,7 +167,7 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
-              href="/userManagement"
+              href="/dashboard/userManagement"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "userManagement"
                   ? "bg-customPink text-white"
@@ -187,7 +187,7 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
-              href="/accountSettings"
+              href="/dashboard/accountSettings"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "accountSettings"
                   ? "bg-customPink text-white"
@@ -207,7 +207,7 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
-              href="/userRoles"
+              href="/dashboard/userRoles"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "userRoles"
                   ? "bg-customPink text-white"
