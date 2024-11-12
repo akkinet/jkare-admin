@@ -32,24 +32,25 @@ export default function Navbar() {
       </div>
 
       {/* User Icon */}
-      <div className="cursor-pointer" onClick={toggleDropdown}>
+      <div
+        className="cursor-pointer relative w-10 h-10 overflow-hidden rounded-full"
+        onClick={toggleDropdown}
+      >
         {session ? (
           <Image
             src={session.user.image}
             alt={session.user.name}
-            width={40}
-            height={40}
+            layout="fill"
+            objectFit="cover"
             className="rounded-full"
           />
         ) : (
           <Link href="/login">
-            <FaUserCircle
-              className="text-gray-600"
-              size={40}
-            />
+            <FaUserCircle className="text-gray-600" size={40} />
           </Link>
         )}
       </div>
+
 
       {/* Dropdown Menu */}
       {session && showDropdown && (
