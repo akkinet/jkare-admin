@@ -29,16 +29,16 @@ const useResponsiveBackground = () => {
 const page = () => {
   const isSmallScreen = useResponsiveBackground()
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("")
+  const [password, setPassword] = useState("");
 
- const submitHandler = async (e) => {
+  const submitHandler = async (e) => {
     try{
       e.preventDefault();
       await signIn("credentials", {
         email,
         password,
         redirect: true,
-        callbackUrl: "/",
+        callbackUrl: "/dashboard",
       });
     }catch(err){
       console.log("err", err);
