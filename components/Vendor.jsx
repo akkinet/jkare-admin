@@ -135,7 +135,7 @@ function Vendor({list}) {
                   <FaEllipsisV />
                 </button>
                 {showDropdown === index && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-md">
+                  <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-md z-10">
                     <button
                       className="block w-full px-4 py-2 text-left hover:bg-gray-100"
                       onClick={() => openEditModal(index)}
@@ -295,7 +295,7 @@ function Vendor({list}) {
           <div className="bg-white p-6 rounded shadow-lg w-96">
             <h2 className="text-xl font-bold mb-4">Delete Vendor</h2>
             <p>
-              Are you sure you want to delete{" "}
+              Before Deleting the vendor make sure that the related products of the vendor also get's deleted from the database
               <span className="font-bold">{vendors[editingIndex]?.contactName}</span>?
             </p>
             <div className="mt-4 flex justify-end space-x-2">
@@ -309,7 +309,7 @@ function Vendor({list}) {
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                 onClick={deleteVendor}
               >
-                Delete User
+                Delete
               </button>
             </div>
           </div>

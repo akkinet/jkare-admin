@@ -65,9 +65,12 @@ export default function Navbar() {
             </div>
           </div>
           <div className="flex flex-col p-2">
-            <button className="flex items-center p-2 hover:bg-gray-100 rounded-md">
+            <Link href="/profile" target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center p-2 hover:bg-gray-100 rounded-md">
               <FaUserAlt className="mr-2 text-gray-600" /> View Profile
-            </button>
+
+            </Link>
             <button className="flex items-center p-2 hover:bg-gray-100 rounded-md">
               <FaCog className="mr-2 text-gray-600" /> Account Settings
             </button>
