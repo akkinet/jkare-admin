@@ -21,57 +21,19 @@ export default function Prescription({ initialOrders, error }) {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [infoRequestedOrders, setInfoRequestedOrders] = useState({});
 
-  useEffect(() => {
-    applyFilters();
-  }, [status, prescriptionFilter, searchQuery, orders]);
-
-  const applyFilters = () => {
-    let filtered = orders;
-
-    if (status === "Pending") {
-      filtered = filtered.filter((order) => order.status === "Pending");
-    } else if (status === "Completed") {
-      filtered = filtered.filter((order) => order.status === "Completed");
-    } else if (status === "Cancelled") {
-      filtered = filtered.filter((order) => order.status === "Cancelled");
-    }
-
-    if (prescriptionFilter !== "both") {
-      filtered = filtered.filter((order) =>
-        prescriptionFilter === "yes"
-          ? order.prescription_status === "Received"
-          : order.prescription_status === "Pending"
-      );
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (order) =>
-          order.id.toString().includes(searchQuery) ||
-          order.customer_email.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    setFilteredOrders(filtered);
-  };
-
-  const handleStatusChange = (newStatus) => {
-    if (["Pending", "Completed", "Cancelled"].includes(newStatus)) {
-      setStatus(newStatus);
-      setOrderDetails(null);
-      setHighlightedOrderId(null);
-    }
-  };
-
   const handleViewMore = (order) => {
     setOrderDetails(order);
     setHighlightedOrderId(order.id);
     setShowOrderModal(true);
   };
 
-  const handleApproveCancel = (id, newStatus) => {
+  const approvalHandler = async (id) => {
+    await fetch(`/api/order/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ status: "Completed" }),
+    });
     const updatedOrders = orders.map((order) =>
-      order.id === id ? { ...order, status: newStatus === "approved" ? "Completed" : "Cancelled" } : order
+      order.id === id ? { ...order, status: "Completed" } : order
     );
     setOrders(updatedOrders);
     setOrderDetails(null);
@@ -79,14 +41,15 @@ export default function Prescription({ initialOrders, error }) {
     setShowOrderModal(false);
   };
 
-  const handleCancel = (order) => {
-    setSelectedOrder(order);
-    setEmailDetails({ to: order.customer_email, message: "", reason: "unable_to_read_order" });
-    setShowCancelModal(true);
-    setShowOrderModal(false);
-  };
-
-  const handleSendEmail = () => {
+  const cancelHandler = async (id, remark, email, status) => {
+    await fetch(`/api/order/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        status,
+        remark,
+        email,
+      }),
+    });
     const updatedOrders = orders.map((order) =>
       order.id === selectedOrder.id
         ? {
@@ -99,7 +62,6 @@ export default function Prescription({ initialOrders, error }) {
           }
         : order
     );
-
     setOrders(updatedOrders);
     setInfoRequestedOrders((prev) => ({
       ...prev,
@@ -110,9 +72,39 @@ export default function Prescription({ initialOrders, error }) {
     setShowRequestInfoModal(false);
   };
 
+  const handleCancel = (order) => {
+    setSelectedOrder(order);
+    setEmailDetails({
+      to: order.customer_email,
+      message: "",
+      reason: "unable_to_read_order",
+    });
+    setShowCancelModal(true);
+    setShowOrderModal(false);
+  };
+
+  const filterHandler = async (ostat, pstat) => {
+    let result;
+    if(pstat != "both"){
+      const res = await fetch(`/api/prescription?ostat=${ostat}&pstat=${prescriptionFilter == "yes" ? "Received" : "Pending"}`);
+      result = await res.json()
+    }
+    else{
+      const res = await fetch(`/api/prescription?ostat=${ostat}`);
+      result = await res.json()
+    }
+    result.Count > 0 ? setFilteredOrders(result.Items) : setFilteredOrders([]);
+    setPrescriptionFilter(pstat);
+    setStatus(ostat);
+    setOrderDetails(null);
+    setHighlightedOrderId(null);
+  };
+
   return (
     <div className="container p-4 bg-[#f4f6f8] h-full max-w-full">
-      <h1 className="text-2xl font-bold mb-4 text-center">Prescription Approvals</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">
+        Prescription Approvals
+      </h1>
 
       {error ? (
         <p>Error loading orders: {error}</p>
@@ -130,20 +122,32 @@ export default function Prescription({ initialOrders, error }) {
             <div className="flex space-x-4">
               <div className="flex space-x-2">
                 <button
-                  className={`px-4 py-2 ${status === "Pending" ? "bg-pink-500 text-white" : "bg-gray-200"} rounded`}
-                  onClick={() => handleStatusChange("Pending")}
+                  className={`px-4 py-2 ${
+                    status === "Pending"
+                      ? "bg-pink-500 text-white"
+                      : "bg-gray-200"
+                  } rounded`}
+                  onClick={() => filterHandler("Pending", prescriptionFilter)}
                 >
                   Pending
                 </button>
                 <button
-                  className={`px-4 py-2 ${status === "Completed" ? "bg-pink-500 text-white" : "bg-gray-200"} rounded`}
-                  onClick={() => handleStatusChange("Completed")}
+                  className={`px-4 py-2 ${
+                    status === "Completed"
+                      ? "bg-pink-500 text-white"
+                      : "bg-gray-200"
+                  } rounded`}
+                  onClick={() => filterHandler("Completed", prescriptionFilter)}
                 >
                   Completed
                 </button>
                 <button
-                  className={`px-4 py-2 ${status === "Cancelled" ? "bg-pink-500 text-white" : "bg-gray-200"} rounded`}
-                  onClick={() => handleStatusChange("Cancelled")}
+                  className={`px-4 py-2 ${
+                    status === "Cancelled"
+                      ? "bg-pink-500 text-white"
+                      : "bg-gray-200"
+                  } rounded`}
+                  onClick={() => filterHandler("Cancelled", prescriptionFilter)}
                 >
                   Cancelled
                 </button>
@@ -154,7 +158,7 @@ export default function Prescription({ initialOrders, error }) {
                   <select
                     name="prescriptionFilter"
                     value={prescriptionFilter}
-                    onChange={(e) => setPrescriptionFilter(e.target.value)}
+                    onChange={(e) => filterHandler(status, e.target.value)}
                     className="border p-2 rounded"
                   >
                     <option value="both">All Orders Prescription only</option>
@@ -165,7 +169,7 @@ export default function Prescription({ initialOrders, error }) {
               </div>
             </div>
           </div>
-          
+
           <div className="overflow-x-auto max-h-72 mt-4">
             <table className="min-w-full bg-white border border-gray-200 shadow-md rounded">
               <thead>
@@ -178,7 +182,9 @@ export default function Prescription({ initialOrders, error }) {
                   <th className="py-2 px-4 text-center">Order Value</th>
                   <th className="py-2 px-4 text-center">Prescription Status</th>
                   <th className="py-2 px-4 text-center">Detail</th>
-                  {status === "Pending" && <th className="py-2 px-4 text-center">Action</th>}
+                  {status === "Pending" && (
+                    <th className="py-2 px-4 text-center">Action</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -186,16 +192,30 @@ export default function Prescription({ initialOrders, error }) {
                   filteredOrders.map((order) => (
                     <tr
                       key={order.id}
-                      className={`border-b ${order.id === highlightedOrderId ? "bg-cyan-200/80" : ""}`}
+                      className={`border-b ${
+                        order.id === highlightedOrderId ? "bg-cyan-200/80" : ""
+                      }`}
                     >
                       <td className="py-2 px-4 text-center">{order.id}</td>
-                      <td className="py-2 px-4 text-center">{order.customer_name}</td>
-                      <td className="py-2 px-4 text-center">{order.customer_email}</td>
-                      <td className="py-2 px-4 text-center">{order.customer_phone}</td>
-                      <td className="py-2 px-4 text-center">{order.order_date}</td>
-                      <td className="py-2 px-4 text-center">$ {order.total_amount}/-</td>
                       <td className="py-2 px-4 text-center">
-                        {order.prescription_status === "Pending" ? "Pending" : "Received"}
+                        {order.customer_name}
+                      </td>
+                      <td className="py-2 px-4 text-center">
+                        {order.customer_email}
+                      </td>
+                      <td className="py-2 px-4 text-center">
+                        {order.customer_phone}
+                      </td>
+                      <td className="py-2 px-4 text-center">
+                        {order.order_date}
+                      </td>
+                      <td className="py-2 px-4 text-center">
+                        $ {order.total_amount}/-
+                      </td>
+                      <td className="py-2 px-4 text-center">
+                        {order.prescription_status === "Pending"
+                          ? "Pending"
+                          : "Received"}
                       </td>
                       <td className="py-2 px-4 text-center">
                         <button
@@ -240,22 +260,47 @@ export default function Prescription({ initialOrders, error }) {
           {showOrderModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
               <div className="bg-white p-6 rounded shadow-md w-full max-w-7xl">
-                <h2 className="text-xl font-bold mb-2 border-b-2 border-gray-300">Order Details</h2>
+                <h2 className="text-xl font-bold mb-2 border-b-2 border-gray-300">
+                  Order Details
+                </h2>
                 {orderDetails && (
                   <>
                     <div className="mb-4">
                       <div className="flex">
                         <div className="mr-8">
-                          <p><strong>Order ID:</strong> {orderDetails.id}</p>
-                          <p><strong>Customer Name:</strong> {orderDetails.customer_name}</p>
-                          <p><strong>Customer Email:</strong> {orderDetails.customer_email}</p>
-                          <p><strong>Phone Number:</strong> {orderDetails.customer_phone}</p>
-                          <p><strong>Order Date:</strong> {orderDetails.order_date}</p>
+                          <p>
+                            <strong>Order ID:</strong> {orderDetails.id}
+                          </p>
+                          <p>
+                            <strong>Customer Name:</strong>{" "}
+                            {orderDetails.customer_name}
+                          </p>
+                          <p>
+                            <strong>Customer Email:</strong>{" "}
+                            {orderDetails.customer_email}
+                          </p>
+                          <p>
+                            <strong>Phone Number:</strong>{" "}
+                            {orderDetails.customer_phone}
+                          </p>
+                          <p>
+                            <strong>Order Date:</strong>{" "}
+                            {orderDetails.order_date}
+                          </p>
                         </div>
                         <div>
-                          <p><strong>Billing Address:</strong> {`${orderDetails.billing_address.line1}, ${orderDetails.billing_address.city}, ${orderDetails.billing_address.state}, ${orderDetails.billing_address.postal_code}, ${orderDetails.billing_address.country}`}</p>
-                          <p><strong>Shipping Address:</strong> {`${orderDetails.shipping_address.line1}, ${orderDetails.shipping_address.city}, ${orderDetails.shipping_address.state}, ${orderDetails.shipping_address.postal_code}, ${orderDetails.shipping_address.country}`}</p>
-                          <p><strong>Insurance Received:</strong> {orderDetails.insurance_pdf ? "Yes" : "No"}</p>
+                          <p>
+                            <strong>Billing Address:</strong>{" "}
+                            {`${orderDetails.billing_address.line1}, ${orderDetails.billing_address.city}, ${orderDetails.billing_address.state}, ${orderDetails.billing_address.postal_code}, ${orderDetails.billing_address.country}`}
+                          </p>
+                          <p>
+                            <strong>Shipping Address:</strong>{" "}
+                            {`${orderDetails.shipping_address.line1}, ${orderDetails.shipping_address.city}, ${orderDetails.shipping_address.state}, ${orderDetails.shipping_address.postal_code}, ${orderDetails.shipping_address.country}`}
+                          </p>
+                          <p>
+                            <strong>Insurance Received:</strong>{" "}
+                            {orderDetails.insurance_pdf ? "Yes" : "No"}
+                          </p>
                           {orderDetails.insurance_pdf && (
                             <div>
                               <strong>Insurance PDF:</strong>{" "}
@@ -268,26 +313,42 @@ export default function Prescription({ initialOrders, error }) {
                       </div>
 
                       {/* Show Cancellation Details if Order is Cancelled */}
-                      {orderDetails.status === "Cancelled" && orderDetails.cancellationDetails && (
-                        <div className="mt-4 bg-red-100 p-4 rounded">
-                          <h3 className="text-lg font-bold text-red-600 mb-2">Cancellation Details</h3>
-                          <p><strong>Reason:</strong> {orderDetails.cancellationDetails.reason}</p>
-                          <p><strong>Message:</strong> {orderDetails.cancellationDetails.message}</p>
-                        </div>
-                      )}
+                      {orderDetails.status === "Cancelled" &&
+                        orderDetails.cancellationDetails && (
+                          <div className="mt-4 bg-red-100 p-4 rounded">
+                            <h3 className="text-lg font-bold text-red-600 mb-2">
+                              Cancellation Details
+                            </h3>
+                            <p>
+                              <strong>Reason:</strong>{" "}
+                              {orderDetails.cancellationDetails.reason}
+                            </p>
+                            <p>
+                              <strong>Message:</strong>{" "}
+                              {orderDetails.cancellationDetails.message}
+                            </p>
+                          </div>
+                        )}
 
                       {/* Show Requested Info if Set */}
                       {infoRequestedOrders[orderDetails.id] && (
                         <div className="mt-4 bg-yellow-100 p-4 rounded">
-                          <h3 className="text-lg font-bold text-yellow-600 mb-2">Requested Information</h3>
-                          <p><strong>Message:</strong> {infoRequestedOrders[orderDetails.id]}</p>
+                          <h3 className="text-lg font-bold text-yellow-600 mb-2">
+                            Requested Information
+                          </h3>
+                          <p>
+                            <strong>Message:</strong>{" "}
+                            {infoRequestedOrders[orderDetails.id]}
+                          </p>
                         </div>
                       )}
                     </div>
 
                     {/* Product Details Section */}
                     <div className="border-t-2 border-gray-300 mt-4">
-                      <h3 className="text-lg font-bold mb-2">Product Details</h3>
+                      <h3 className="text-lg font-bold mb-2">
+                        Product Details
+                      </h3>
                       <div className="overflow-y-auto max-h-60">
                         <table className="min-w-full bg-white table-auto">
                           <thead>
@@ -305,8 +366,12 @@ export default function Prescription({ initialOrders, error }) {
                           <tbody>
                             {orderDetails.items.map((item, index) => (
                               <tr key={index} className="border-t">
-                                <td className="py-2 px-4 text-center">{index + 1}</td>
-                                <td className="py-2 px-4 text-center">{item.product_id}</td>
+                                <td className="py-2 px-4 text-center">
+                                  {index + 1}
+                                </td>
+                                <td className="py-2 px-4 text-center">
+                                  {item.product_id}
+                                </td>
                                 <td className="py-2 px-4 text-center">
                                   <img
                                     src={item.image}
@@ -314,10 +379,18 @@ export default function Prescription({ initialOrders, error }) {
                                     className="h-12 w-12 object-cover"
                                   />
                                 </td>
-                                <td className="py-2 px-4 text-center">{item.product_name}</td>
-                                <td className="py-2 px-4 text-center line-clamp-2">{item.description}</td>
-                                <td className="py-2 px-4 text-center">X{item.quantity}</td>
-                                <td className="py-2 px-4 text-center">${item.price}/-</td>
+                                <td className="py-2 px-4 text-center">
+                                  {item.product_name}
+                                </td>
+                                <td className="py-2 px-4 text-center line-clamp-2">
+                                  {item.description}
+                                </td>
+                                <td className="py-2 px-4 text-center">
+                                  X{item.quantity}
+                                </td>
+                                <td className="py-2 px-4 text-center">
+                                  ${item.price}/-
+                                </td>
                                 <td className="py-2 px-4 text-center">
                                   {item.prescription_required ? "Yes" : "No"}
                                 </td>
@@ -335,28 +408,29 @@ export default function Prescription({ initialOrders, error }) {
                       >
                         Close
                       </button>
-                      {orderDetails.status === "Pending" && !infoRequestedOrders[orderDetails.id] && (
-                        <div className="flex space-x-4">
-                          <button
-                            className="bg-green-500 text-white px-4 py-2 rounded"
-                            onClick={() => handleApproveCancel(orderDetails.id, "approved")}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            className="bg-yellow-500 text-white px-4 py-2 rounded"
-                            onClick={() => setShowRequestInfoModal(true)}
-                          >
-                            Request More Info
-                          </button>
-                          <button
-                            className="bg-red-500 text-white px-4 py-2 rounded"
-                            onClick={() => handleCancel(orderDetails)}
-                          >
-                            Cancel Order
-                          </button>
-                        </div>
-                      )}
+                      {orderDetails.status === "Pending" &&
+                        !infoRequestedOrders[orderDetails.id] && (
+                          <div className="flex space-x-4">
+                            <button
+                              className="bg-green-500 text-white px-4 py-2 rounded"
+                              onClick={() => approvalHandler(orderDetails.id)}
+                            >
+                              Approve
+                            </button>
+                            <button
+                              className="bg-yellow-500 text-white px-4 py-2 rounded"
+                              onClick={() => setShowRequestInfoModal(true)}
+                            >
+                              Request More Info
+                            </button>
+                            <button
+                              className="bg-red-500 text-white px-4 py-2 rounded"
+                              onClick={() => handleCancel(orderDetails)}
+                            >
+                              Cancel Order
+                            </button>
+                          </div>
+                        )}
                     </div>
                   </>
                 )}
@@ -378,7 +452,7 @@ export default function Prescription({ initialOrders, error }) {
                   </button>
                   <button
                     className="bg-green-500 text-white px-4 py-2 rounded"
-                    onClick={() => handleApproveCancel(selectedOrder.id, "approved")}
+                    onClick={() => approvalHandler(selectedOrder.id)}
                   >
                     Approve
                   </button>
@@ -398,7 +472,10 @@ export default function Prescription({ initialOrders, error }) {
                     value={emailDetails.to}
                     disabled
                     onChange={(e) =>
-                      setEmailDetails((prev) => ({ ...prev, to: e.target.value }))
+                      setEmailDetails((prev) => ({
+                        ...prev,
+                        to: e.target.value,
+                      }))
                     }
                     className="border border-gray-300 rounded w-full px-2 py-1"
                   />
@@ -407,12 +484,23 @@ export default function Prescription({ initialOrders, error }) {
                   <span className="font-bold">Reason for Cancellation:</span>
                   <select
                     value={emailDetails.reason}
-                    onChange={(e) => setEmailDetails((prev) => ({ ...prev, reason: e.target.value }))}
+                    onChange={(e) =>
+                      setEmailDetails((prev) => ({
+                        ...prev,
+                        reason: e.target.value,
+                      }))
+                    }
                     className="border border-gray-300 rounded w-full px-2 py-1"
                   >
-                    <option value="unable_to_read_order">Unable to read order</option>
-                    <option value="prescription_not_received">Prescription not received</option>
-                    <option value="more_info_required">More information required</option>
+                    <option value="unable_to_read_order">
+                      Unable to read order
+                    </option>
+                    <option value="prescription_not_received">
+                      Prescription not received
+                    </option>
+                    <option value="more_info_required">
+                      More information required
+                    </option>
                   </select>
                 </label>
                 <label className="block mb-4">
@@ -420,7 +508,10 @@ export default function Prescription({ initialOrders, error }) {
                   <textarea
                     value={emailDetails.message}
                     onChange={(e) =>
-                      setEmailDetails((prev) => ({ ...prev, message: e.target.value }))
+                      setEmailDetails((prev) => ({
+                        ...prev,
+                        message: e.target.value,
+                      }))
                     }
                     className="border border-gray-300 rounded w-full px-2 py-1"
                     rows="4"
@@ -435,7 +526,14 @@ export default function Prescription({ initialOrders, error }) {
                   </button>
                   <button
                     className="bg-pink-500 text-white px-4 py-2 rounded"
-                    onClick={handleSendEmail}
+                    onClick={() =>
+                      cancelHandler(
+                        selectedOrder.id,
+                        { sub: emailDetails.reason, msg: emailDetails.message },
+                        emailDetails.to,
+                        "Cancelled"
+                      )
+                    }
                   >
                     Send
                   </button>
@@ -447,7 +545,9 @@ export default function Prescription({ initialOrders, error }) {
           {showRequestInfoModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
               <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">Request More Information</h2>
+                <h2 className="text-xl font-bold mb-4">
+                  Request More Information
+                </h2>
                 <label className="block mb-2">
                   <span className="font-bold">To:</span>
                   <input
@@ -461,7 +561,12 @@ export default function Prescription({ initialOrders, error }) {
                   <span className="font-bold">Message:</span>
                   <textarea
                     value={emailDetails.message}
-                    onChange={(e) => setEmailDetails((prev) => ({ ...prev, message: e.target.value }))}
+                    onChange={(e) =>
+                      setEmailDetails((prev) => ({
+                        ...prev,
+                        message: e.target.value,
+                      }))
+                    }
                     className="border border-gray-300 rounded w-full px-2 py-1"
                     rows="4"
                   />
