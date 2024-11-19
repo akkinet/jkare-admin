@@ -1,17 +1,7 @@
 "use client"
 import { useState } from "react";
 import { FaEllipsisV, FaEdit, FaTrash } from "react-icons/fa";
-const initialVendors = [
-  {
-    id: "abcd1234",
-    contactName: "John Doe",
-    name: "Acme Corp",
-    address: "123 Main St, Springfield, IL",
-    phoneNumber: "+1 555-555-5555",
-    email: "john.doe@acme.com",
-    imageUrl: "https://media.licdn.com/dms/image/v2/C4D03AQEeEyYzNtDq7g/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1524234561685?e=2147483647&v=beta&t=uHzeaBv3V2z6Tp6wvhzGABlTs9HR-SP-tEX1UbYNn4Q",
-  },
-];
+
 function Vendor({list}) {
   const [vendors, setVendors] = useState(list);
   const [showDropdown, setShowDropdown] = useState(null);
