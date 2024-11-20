@@ -6,7 +6,6 @@ export default function Prescription({ initialOrders, error }) {
   const [prescriptionFilter, setPrescriptionFilter] = useState("both");
   const [orderDetails, setOrderDetails] = useState(null);
   const [orders, setOrders] = useState(initialOrders);
-  // const [filteredOrders, setFilteredOrders] = useState(initialOrders);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
@@ -99,6 +98,22 @@ export default function Prescription({ initialOrders, error }) {
     setHighlightedOrderId(null);
   };
 
+  const searchHandler = async (query) => {
+    const fields = ['id', 'customer_email'];
+    let url = `/api/prescription?ostat=${status}`;
+    if(prescriptionFilter != "both")
+      url += `&pstat=${prescriptionFilter == "yes" ? "Received" : "Pending"}`;
+
+    if(query != "")
+      url += `&query=${query}&fields=${fields.join(',')}`;
+    
+    const res = await fetch(url);
+  
+    setSearchQuery(query);
+    const result = await res.json();
+    result.Count > 0 ? setOrders(result.Items) : setOrders([]);
+  }
+
   return (
     <div className="container p-4 bg-[#f4f6f8] h-full max-w-full">
       <h1 className="text-2xl font-bold mb-4 text-center">
@@ -115,7 +130,7 @@ export default function Prescription({ initialOrders, error }) {
               className="border border-gray-300 rounded px-4 py-2 w-full sm:w-80"
               placeholder="Search by Order ID or Customer Email"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => searchHandler(e.target.value.trim())}
             />
 
             <div className="flex space-x-4">
