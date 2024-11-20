@@ -82,7 +82,7 @@ const page = () => {
             <label
               htmlFor="email"
               className={`block mb-2 font-bold ${
-                isSmallScreen ? "text-white" : "text-customBlue"
+                isSmallScreen ? "text-customBlue" : "text-customBlue"
               }`}
             >
               Email
@@ -98,7 +98,7 @@ const page = () => {
             <label
               htmlFor="password"
               className={`block mb-2 font-bold ${
-                isSmallScreen ? "text-white" : "text-customBlue"
+                isSmallScreen ? "text-customBlue" : "text-customBlue"
               }`}
             >
               Password
@@ -126,7 +126,7 @@ const page = () => {
             <a
               href="#"
               className={`block mt-2 md:mt-4 text-center ${
-                isSmallScreen ? "text-white" : "text-pink-500"
+                isSmallScreen ? "text-customBlue" : "text-pink-500"
               }`}
             >
               Forgot Password? Contact your (Super Admin)

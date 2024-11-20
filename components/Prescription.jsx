@@ -53,13 +53,13 @@ export default function Prescription({ initialOrders, error }) {
     const updatedOrders = orders.map((order) =>
       order.id === selectedOrder.id
         ? {
-            ...order,
-            status: "Cancelled",
-            cancellationDetails: {
-              reason: emailDetails.reason,
-              message: emailDetails.message,
-            },
-          }
+          ...order,
+          status: "Cancelled",
+          cancellationDetails: {
+            reason: emailDetails.reason,
+            message: emailDetails.message,
+          },
+        }
         : order
     );
     setOrders(updatedOrders);
@@ -85,11 +85,11 @@ export default function Prescription({ initialOrders, error }) {
 
   const filterHandler = async (ostat, pstat) => {
     let result;
-    if(pstat != "both"){
+    if (pstat != "both") {
       const res = await fetch(`/api/prescription?ostat=${ostat}&pstat=${prescriptionFilter == "yes" ? "Received" : "Pending"}`);
       result = await res.json()
     }
-    else{
+    else {
       const res = await fetch(`/api/prescription?ostat=${ostat}`);
       result = await res.json()
     }
@@ -101,7 +101,7 @@ export default function Prescription({ initialOrders, error }) {
   };
 
   return (
-    <div className="container p-4 bg-[#f4f6f8] h-full max-w-full">
+    <div className="p-4 bg-[#f4f6f8] h-full">
       <h1 className="text-2xl font-bold mb-4 text-center">
         Prescription Approvals
       </h1>
@@ -122,31 +122,28 @@ export default function Prescription({ initialOrders, error }) {
             <div className="flex space-x-4">
               <div className="flex space-x-2">
                 <button
-                  className={`px-4 py-2 ${
-                    status === "Pending"
+                  className={`px-4 py-2 ${status === "Pending"
                       ? "bg-pink-500 text-white"
                       : "bg-gray-200"
-                  } rounded`}
+                    } rounded`}
                   onClick={() => filterHandler("Pending", prescriptionFilter)}
                 >
                   Pending
                 </button>
                 <button
-                  className={`px-4 py-2 ${
-                    status === "Completed"
+                  className={`px-4 py-2 ${status === "Completed"
                       ? "bg-pink-500 text-white"
                       : "bg-gray-200"
-                  } rounded`}
+                    } rounded`}
                   onClick={() => filterHandler("Completed", prescriptionFilter)}
                 >
                   Completed
                 </button>
                 <button
-                  className={`px-4 py-2 ${
-                    status === "Cancelled"
+                  className={`px-4 py-2 ${status === "Cancelled"
                       ? "bg-pink-500 text-white"
                       : "bg-gray-200"
-                  } rounded`}
+                    } rounded`}
                   onClick={() => filterHandler("Cancelled", prescriptionFilter)}
                 >
                   Cancelled
@@ -170,92 +167,94 @@ export default function Prescription({ initialOrders, error }) {
             </div>
           </div>
 
-          <div className="overflow-x-auto max-h-72 mt-4">
-            <table className="min-w-full bg-white border border-gray-200 shadow-md rounded">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="py-2 px-4 text-center">Order ID</th>
-                  <th className="py-2 px-4 text-center">Customer Name</th>
-                  <th className="py-2 px-4 text-center">Customer Email</th>
-                  <th className="py-2 px-4 text-center">Phone Number</th>
-                  <th className="py-2 px-4 text-center">Order Date</th>
-                  <th className="py-2 px-4 text-center">Order Value</th>
-                  <th className="py-2 px-4 text-center">Prescription Status</th>
-                  <th className="py-2 px-4 text-center">Detail</th>
-                  {status === "Pending" && (
-                    <th className="py-2 px-4 text-center">Action</th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOrders.length > 0 ? (
-                  filteredOrders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className={`border-b ${
-                        order.id === highlightedOrderId ? "bg-cyan-200/80" : ""
-                      }`}
-                    >
-                      <td className="py-2 px-4 text-center">{order.id}</td>
-                      <td className="py-2 px-4 text-center">
-                        {order.customer_name}
-                      </td>
-                      <td className="py-2 px-4 text-center">
-                        {order.customer_email}
-                      </td>
-                      <td className="py-2 px-4 text-center">
-                        {order.customer_phone}
-                      </td>
-                      <td className="py-2 px-4 text-center">
-                        {order.order_date}
-                      </td>
-                      <td className="py-2 px-4 text-center">
-                        $ {order.total_amount}/-
-                      </td>
-                      <td className="py-2 px-4 text-center">
-                        {order.prescription_status === "Pending"
-                          ? "Pending"
-                          : "Received"}
-                      </td>
-                      <td className="py-2 px-4 text-center">
-                        <button
-                          className="bg-pink-500 text-white px-3 py-1 rounded"
-                          onClick={() => handleViewMore(order)}
-                        >
-                          Review Order
-                        </button>
-                      </td>
-                      {status === "Pending" && (
-                        <td className="py-2 px-4 flex justify-center space-x-2">
+          <div className="overflow-x-auto max-h-72 mt-4 text-sm ">
+            <div className="w-full overflow-auto">
+              <table className="bg-white border border-gray-200 shadow-md rounded w-full">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="py-2 px-4 text-center">Order ID</th>
+                    <th className="py-2 px-4 text-center">Customer Name</th>
+                    <th className="py-2 px-4 text-center">Customer Email</th>
+                    <th className="py-2 px-4 text-center">Phone Number</th>
+                    <th className="py-2 px-4 text-center">Order Date</th>
+                    <th className="py-2 px-4 text-center">Order Value</th>
+                    <th className="py-2 px-4 text-center">Prescription Status</th>
+                    <th className="py-2 px-4 text-center">Detail</th>
+                    {status === "Pending" && (
+                      <th className="py-2 px-4 text-center">Action</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredOrders.length > 0 ? (
+                    filteredOrders.map((order) => (
+                      <tr
+                        key={order.id}
+                        className={`border-b ${order.id === highlightedOrderId ? "bg-cyan-200/80" : ""
+                          }`}
+                      >
+                        <td className="py-2 px-4 text-center">{order.id}</td>
+                        <td className="py-2 px-4 text-center">
+                          {order.customer_name}
+                        </td>
+                        <td className="py-2 px-4 text-center">
+                          {order.customer_email}
+                        </td>
+                        <td className="py-2 px-4 text-center">
+                          {order.customer_phone}
+                        </td>
+                        <td className="py-2 px-4 text-center">
+                          {order.order_date}
+                        </td>
+                        <td className="py-2 px-4 text-center">
+                          $ {order.total_amount}/-
+                        </td>
+                        <td className="py-2 px-4 text-center">
+                          {order.prescription_status === "Pending"
+                            ? "Pending"
+                            : "Received"}
+                        </td>
+                        <td className="py-2 px-4 text-center">
                           <button
-                            className="bg-green-500 text-white px-3 py-1 rounded"
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setShowApproveModal(true);
-                            }}
+                            className="bg-pink-500 text-white px-3 py-1 rounded"
+                            onClick={() => handleViewMore(order)}
                           >
-                            Approve
-                          </button>
-                          <button
-                            className="bg-red-500 text-white px-3 py-1 rounded"
-                            onClick={() => handleCancel(order)}
-                          >
-                            Cancel
+                            Review Order
                           </button>
                         </td>
-                      )}
+                        {status === "Pending" && (
+                          <td className="py-2 px-4 flex justify-center space-x-2">
+                            <button
+                              className="bg-green-500 text-white px-3 py-1 rounded"
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setShowApproveModal(true);
+                              }}
+                            >
+                              Approve
+                            </button>
+                            <button
+                              className="bg-red-500 text-white px-3 py-1 rounded"
+                              onClick={() => handleCancel(order)}
+                            >
+                              Cancel
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="9" className="text-center py-4">
+                        No orders found.
+                      </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="9" className="text-center py-4">
-                      No orders found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
+
 
           {showOrderModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
