@@ -1,12 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function Prescription({ initialOrders, error }) {
   const [status, setStatus] = useState("Pending");
   const [prescriptionFilter, setPrescriptionFilter] = useState("both");
   const [orderDetails, setOrderDetails] = useState(null);
   const [orders, setOrders] = useState(initialOrders);
-  const [filteredOrders, setFilteredOrders] = useState(initialOrders);
+  // const [filteredOrders, setFilteredOrders] = useState(initialOrders);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
@@ -20,7 +20,6 @@ export default function Prescription({ initialOrders, error }) {
   });
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [infoRequestedOrders, setInfoRequestedOrders] = useState({});
-
   const handleViewMore = (order) => {
     setOrderDetails(order);
     setHighlightedOrderId(order.id);
@@ -86,14 +85,14 @@ export default function Prescription({ initialOrders, error }) {
   const filterHandler = async (ostat, pstat) => {
     let result;
     if(pstat != "both"){
-      const res = await fetch(`/api/prescription?ostat=${ostat}&pstat=${prescriptionFilter == "yes" ? "Received" : "Pending"}`);
+      const res = await fetch(`/api/prescription?ostat=${ostat}&pstat=${pstat == "yes" ? "Received" : "Pending"}`);
       result = await res.json()
     }
     else{
       const res = await fetch(`/api/prescription?ostat=${ostat}`);
       result = await res.json()
     }
-    result.Count > 0 ? setFilteredOrders(result.Items) : setFilteredOrders([]);
+    result.Count > 0 ? setOrders(result.Items) : setOrders([]);
     setPrescriptionFilter(pstat);
     setStatus(ostat);
     setOrderDetails(null);
@@ -188,8 +187,8 @@ export default function Prescription({ initialOrders, error }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.length > 0 ? (
-                  filteredOrders.map((order) => (
+                {orders.length > 0 ? (
+                  orders.map((order) => (
                     <tr
                       key={order.id}
                       className={`border-b ${
