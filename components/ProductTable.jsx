@@ -18,7 +18,7 @@ const ProductTable = ({ data }) => {
 
     const res = await fetch(url)
     const data = await res.json();
-    setProducts(data);
+    setProducts(data.products);
   }
 
   return (
