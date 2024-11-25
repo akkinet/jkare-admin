@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { AiOutlinePlus } from "react-icons/ai"; // Importing the plus icon
 
-function ProductForm({ brandList, catList }) {
+function ProductForm({ brandList, catList, vendorList }) {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   // brand selection
@@ -63,7 +63,10 @@ function ProductForm({ brandList, catList }) {
     ) {
       const discount =
         ((newProduct.prod_value - dealerPrice) / newProduct.prod_value) * 100;
-      setNewProduct({ ...newProduct, discount: discount.toFixed(2) });
+      setNewProduct({
+        ...newProduct,
+        discount: parseFloat(discount.toFixed(2)),
+      });
       return discount.toFixed(2); // Returns discount percentage with two decimal places
     }
     return 0;
@@ -71,7 +74,8 @@ function ProductForm({ brandList, catList }) {
 
   const handleInput = (e, setter) => {
     let value;
-    if (setter == "prod_value") value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric input
+    if (setter == "prod_value")
+      value = parseInt(e.target.value.replace(/[^0-9]/g), ""); // Remove non-numeric input
     setNewProduct({ ...newProduct, [setter]: value });
   };
 
@@ -90,10 +94,39 @@ function ProductForm({ brandList, catList }) {
     setIsUploadConfirmModalOpen(false);
   };
 
-  const handleFinalUpload = () => {
+  const handleFinalUpload = async () => {
     // Handle the upload logic
     console.log("Final upload logic executed.", newProduct);
     setIsUploadConfirmModalOpen(false);
+    const files = await Promise.all(
+      newProduct.prod_images.map(async (url) => {
+        const response = await fetch(url); // Fetch the blob data
+        const blob = await response.blob(); // Convert to Blob
+        return new File([blob], `image-${Date.now()}.jpg`, { type: blob.type }); // Convert to File
+      })
+    );
+
+    const prod = { ...newProduct };
+    delete prod.prod_images;
+
+    const formData = new FormData();
+    files.forEach((file, index) => formData.append(`file${index}`, file));
+
+    // Append additional fields
+    Object.entries(prod).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    const response = await fetch("/api/product", {
+      method: "POST",
+      body: formData,
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log("Upload Response:", result);
   };
 
   const handleImageUpload = (e) => {
@@ -162,7 +195,10 @@ function ProductForm({ brandList, catList }) {
 
   const inputHandler = (e) => {
     const { name, value } = e.target;
-    setNewProduct({ ...newProduct, [name]: name == "prod_id" ? value.trim() : value });
+    setNewProduct({
+      ...newProduct,
+      [name]: name == "prod_id" ? value.trim() : value,
+    });
   };
 
   return (
@@ -313,6 +349,26 @@ function ProductForm({ brandList, catList }) {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Brand Name */}
+              <div className="mb-4">
+                <label className="block text-gray-600 mb-2">Vendor Name</label>
+                <div className="flex items-center">
+                  <select
+                    name="vendor_name"
+                    className="w-full border border-gray-300 rounded px-4 py-2"
+                    value={newProduct.vendor_name} // Bind the selected value
+                    onChange={inputHandler} // Update the selected brand
+                  >
+                    <option value="">Select</option>
+                    {vendorList.map((vendor, index) => (
+                      <option key={index} value={vendor}>
+                        {vendor}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* Key features */}

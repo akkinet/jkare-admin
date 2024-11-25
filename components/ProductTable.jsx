@@ -225,7 +225,7 @@ const ProductTable = ({ data }) => {
         </button>
       </div>
       
-          {showForm && <ProductForm brandList={data.brands} catList={data.categories} />}
+          {showForm && <ProductForm brandList={data.brands} catList={data.categories} vendorList={data.vendors} />}
     </div>
   );
 };
