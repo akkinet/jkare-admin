@@ -98,42 +98,77 @@ function ProductForm({ brandList, catList, vendorList }) {
     // Handle the upload logic
     console.log("Final upload logic executed.", newProduct);
     setIsUploadConfirmModalOpen(false);
-    const files = await Promise.all(
-      newProduct.prod_images.map(async (url) => {
-        const response = await fetch(url); // Fetch the blob data
-        const blob = await response.blob(); // Convert to Blob
-        return new File([blob], `image-${Date.now()}.jpg`, { type: blob.type }); // Convert to File
-      })
-    );
 
-    const prod = { ...newProduct };
-    delete prod.prod_images;
-
-    const formData = new FormData();
-    files.forEach((file, index) => formData.append(`file${index}`, file));
-
-    // Append additional fields
-    Object.entries(prod).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
+    const productFeatures = {
+      pay_over_time: false,
+      rx_required: false,
+      light_weight: false,
+      "2_years_warranty": false,
+      free_shipping: false
+    }
+    const uploadObj = {...newProduct}
+    uploadObj.key_features = {...uploadObj.key_features, ...productFeatures}
+    if(uploadObj.prod_id == "")
+      uploadObj.prod_id = new Date().getTime();
+    else
+      uploadObj.prod_id = parseInt(newProduct.prod_id)
 
     const response = await fetch("/api/product", {
       method: "POST",
-      body: formData,
+      body: JSON.stringify(uploadObj),
     });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const result = await response.json();
+    setNewProduct({
+      prod_id: "",
+      brand_name: "",
+      category: "",
+      isFeatured: true,
+      key_features: {},
+      prod_desc: "",
+      prod_detailed_desc: [],
+      prod_highlight: [],
+      prod_images: [],
+      prod_name: "",
+      prod_value: "",
+      stockQuantity: 0,
+      vendor_name: "",
+      discount: 0,
+    });
+    alert("product uploaded")
     console.log("Upload Response:", result);
   };
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter((file) => file.size <= 2 * 1024 * 1024); // Limit to 2MB
-    const newImages = validFiles.map((file) => URL.createObjectURL(file));
-    setNewProduct({ ...newProduct, prod_images: newImages });
+  
+    const promises = validFiles.map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+  
+        reader.onloadend = () => {
+          resolve({
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type,
+            filePreview: reader.result,
+          });
+        };
+  
+        reader.readAsDataURL(file);
+      });
+    });
+  
+    Promise.all(promises).then((results) => {
+      setNewProduct((prevState) => ({
+        ...prevState,
+        prod_images: [...prevState.prod_images, ...results],
+      }));
+    });
   };
 
   const handleAddMoreImages = () => {
@@ -289,7 +324,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                   placeholder="Enter Product ID"
                   name="prod_id"
                   value={newProduct.prod_id}
-                  onChange={inputHandler}
+                  onChange={({target}) => !isNaN(target.value) && setNewProduct({...newProduct, prod_id: target.value})}
                   className="w-full border border-gray-300 rounded px-4 py-2"
                 />
               </div>
@@ -393,7 +428,6 @@ function ProductForm({ brandList, catList, vendorList }) {
                             className="text-white bg-customBlue rounded-full w-5 h-5 flex items-center justify-center"
                             onClick={(e) => {
                               e.stopPropagation();
-                              // handleRemoveOption(option);
                               featuresHandler(option, false);
                             }}
                           >
@@ -693,7 +727,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                         className="relative w-24 h-24 border rounded overflow-hidden"
                       >
                         <img
-                          src={image}
+                          src={image.filePreview}
                           alt={`Uploaded ${index + 1}`}
                           className="w-full h-full object-cover"
                         />

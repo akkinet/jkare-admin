@@ -2,99 +2,41 @@ import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ddbDocClient } from "@/config/docClient";
 import { NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import formidable from "formidable";
-import fs from "fs";
-import getRawBody from "raw-body";
-import { Readable } from "stream";
-
-export const runtime = "nodejs"; // Ensure Node.js runtime is used
-export const config = {
-  api: {
-    bodyParser: false, // Disable default body parsing by Next.js
-  },
-};
-
-const s3 = new S3Client();
-
-// Convert Buffer to Readable Stream
-function bufferToStream(buffer, headers) {
-  const stream = new Readable();
-  stream._read = () => {}; // No-op
-  stream.push(buffer);
-  stream.push(null); // End the stream
-  stream.headers = headers; // Attach headers for formidable
-  return stream;
-}
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 
 export async function POST(req) {
   try {
-    // Get raw body as a buffer
-    const rawBody = await getRawBody(req, {
-      length: req.headers["content-length"], // Required by raw-body
-      limit: "10mb", // Set appropriate limit
-      encoding: null, // Keep raw buffer
-    });
+    const { prod_images, ...body } = await req.json();
+    const uploadedImages = [];
+    for (const image of prod_images) {
+      const { fileName, filePreview, fileType } = image;
+      const fileBuffer = Buffer.from(filePreview.split(",")[1], "base64");
+      const lastDot = fileName.lastIndexOf(".");
+      const file_name = fileName.slice(0, lastDot);
+      const extension = fileName.slice(lastDot + 1);
+      const newFileName = `products/${
+        body.prod_id
+      }/${file_name}_${new Date().getTime()}.${extension}`;
+      const s3 = new S3Client();
+      const params = {
+        Bucket: "medicom.hexerve",
+        Key: newFileName,
+        Body: fileBuffer,
+        ContentType: fileType,
+      };
+      await s3.send(new PutObjectCommand(params));
+      uploadedImages.push(
+        `https://s3.${process.env.AWS_REGION}.amazonaws.com/${process.env.AWS_S3_BUCKET}/${newFileName}`
+      );
+    }
 
-    // Convert buffer to a readable stream
-    const nodeReq = bufferToStream(rawBody, req.headers);
-
-    // Use formidable to parse the form
-    const form = formidable({
-      multiples: true, // Allow multiple file uploads
-      keepExtensions: true, // Keep file extensions
-    });
-
-    return new Promise((resolve, reject) => {
-      // Parse the request using formidable
-      form.parse(nodeReq, async (err, fields, files) => {
-        if (err) {
-          console.error("Error parsing form:", err);
-          return resolve(
-            new Response(JSON.stringify({ error: "Error processing form" }), {
-              status: 500,
-            })
-          );
-        }
-
-        try {
-          console.log("Fields received:", fields);
-
-          // Upload files to S3
-          const uploadPromises = Object.values(files).map(async (file) => {
-            const fileContent = fs.readFileSync(file.filepath);
-
-            const command = new PutObjectCommand({
-              Bucket: process.env.AWS_S3_BUCKET,
-              Key: `products/${fields.prod_id}/${file.originalFilename}`,
-              Body: fileContent,
-              ContentType: file.mimetype,
-            });
-
-            return s3.send(command);
-          });
-
-          const results = await Promise.all(uploadPromises);
-
-          return resolve(
-            new Response(
-              JSON.stringify({
-                message: "Files uploaded successfully",
-                fields,
-                results,
-              }),
-              { status: 200 }
-            )
-          );
-        } catch (uploadError) {
-          console.error("Error uploading files:", uploadError);
-          return resolve(
-            new Response(JSON.stringify({ error: "Error uploading files" }), {
-              status: 500,
-            })
-          );
-        }
-      });
-    });
+    const params = {
+      TableName: "RealProducts",
+      Item: {...body, prod_images: uploadedImages},
+    };
+    const command = new PutCommand(params);
+    await ddbDocClient.send(command);
+    return NextResponse.json({ msg: "Product inserted successfully" }, { status: 201 });
   } catch (error) {
     console.error("Request handling error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
