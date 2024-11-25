@@ -1,96 +1,86 @@
-import { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { AiOutlinePlus } from "react-icons/ai"; // Importing the plus icon
 
-function ProductForm() {
-  const [selectedCategory, setSelectedCategory] = useState("");
+function ProductForm({ brandList, catList }) {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [newCategory, setNewCategory] = useState("");
-  const [selectedBrand, setSelectedBrand] = useState(""); // Tracks the selected brand
   // brand selection
-  const [brands, setBrands] = useState([
-    "3B Medical",
-    "Sentec",
-    "Fisher & Paykel Healthcare",
-    "Percussionaire",
-    "LM",
-    "P2",
-    "Oxygen Concentrator Store",
-    "Rhythm",
-    "AffloVest",
-    "ABM Respiratory Care",
-    "Radiometer",
-  ]);
-  const [newBrand, setNewBrand] = useState("");
-  //stock quantity
-  const [stockQuantity, setStockQuantity] = useState("");
-
-  //Product images 
-  const [images, setImages] = useState([]);
-  const [selectedOptions, setSelectedOptions] = useState([]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [description, setDescription] = useState("");
-  const [isDisabled, setIsDisabled] = useState(false);
-  const [keyValuePairs, setKeyValuePairs] = useState([{ key: "", value: "" },]);
-  const [highlightsList, setHighlightsList] = useState([""]);
-  const [actualPrice, setActualPrice] = useState("");
-  const [dealerPrice, setDealerPrice] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleSelectOption = (option) => {
-    if (!selectedOptions.includes(option)) {
-      setSelectedOptions([...selectedOptions, option]);
-    }
-  };
-
-  const handleRemoveOption = (option) => {
-    setSelectedOptions(selectedOptions.filter((item) => item !== option));
-  };
-
-  const handleChange = (e) => {
-    const text = e.target.value;
-    const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
-
-    if (wordCount <= 300) {
-      setDescription(text);
-      setIsDisabled(false);
-    } else {
-      setIsDisabled(true);
-    }
-  };
-
-  const handleStockInputChange = (e) => {
-    const value = e.target.value.replace(/[^0-9]/g, ""); // Only allow positive numbers
-    setStockQuantity(value);
-  };
-  //Discount calculation
-  const calculateDiscount = () => {
-    if (actualPrice && dealerPrice && Number(actualPrice) > 0) {
-      const discount = ((actualPrice - dealerPrice) / actualPrice) * 100;
-      return discount.toFixed(2); // Returns discount percentage with two decimal places
-    }
-    return 0;
-  };
-  const handleInput = (e, setter) => {
-    const value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric input
-    setter(value);
-  };
-
+  const [brands, setBrands] = useState(brandList);
   // Category Selection
-  const [categories, setCategories] = useState([
-    "Oxygen Therapy Devices",
-    "Pap Devices",
-    "Respiratory Devices",
-    "Respiratory Monitoring Devices",
-    "CPAP Masks",
-    "Respiratory Therapy Devices",
-    "Oxygen Concentrators",
-  ]);
-
-  const wordCount = description.trim().split(/\s+/).filter(Boolean).length;
+  const [categories, setCategories] = useState(catList);
+  const [newBrand, setNewBrand] = useState("");
 
   //product upload
   const [isUploadConfirmModalOpen, setIsUploadConfirmModalOpen] =
     useState(false);
+  const [newProduct, setNewProduct] = useState({
+    prod_id: "",
+    brand_name: "",
+    category: "",
+    isFeatured: true,
+    key_features: {},
+    prod_desc: "",
+    prod_detailed_desc: [],
+    prod_highlight: [],
+    prod_images: [],
+    prod_name: "",
+    prod_value: "",
+    stockQuantity: 0,
+    vendor_name: "",
+    discount: 0,
+  });
+  const [pair, setPair] = useState({ key: "", value: "" });
+  const [pHL, setPHL] = useState("");
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
+  const [dealerPrice, setDealerPrice] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  //key features
+  const options = [
+    "pay_over_time",
+    "rx_required",
+    "light_weight",
+    "2_years_warranty",
+    "free_shipping",
+  ];
+
+  const featuresHandler = (option, val) => {
+    setNewProduct({
+      ...newProduct,
+      key_features: {
+        ...newProduct.key_features,
+        [option]: val,
+      },
+    });
+  };
+
+  let discount = useMemo(() => {
+    if (
+      newProduct.prod_value != "" &&
+      dealerPrice != "" &&
+      Number(newProduct.prod_value) > 0
+    ) {
+      const discount =
+        ((newProduct.prod_value - dealerPrice) / newProduct.prod_value) * 100;
+      setNewProduct({ ...newProduct, discount: discount.toFixed(2) });
+      return discount.toFixed(2); // Returns discount percentage with two decimal places
+    }
+    return 0;
+  }, [newProduct.prod_value, dealerPrice]);
+
+  const handleInput = (e, setter) => {
+    let value;
+    if (setter == "prod_value") value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric input
+    setNewProduct({ ...newProduct, [setter]: value });
+  };
+
+  const wordCount = useMemo(() => {
+    const len = newProduct.prod_desc.trim().split(/\s+/).filter(Boolean).length;
+    if (len == 300) setIsDisabled(true);
+    else setIsDisabled(false);
+    return len;
+  }, [newProduct.prod_desc]);
 
   const handleUploadClick = () => {
     setIsUploadConfirmModalOpen(true);
@@ -102,7 +92,7 @@ function ProductForm() {
 
   const handleFinalUpload = () => {
     // Handle the upload logic
-    console.log("Final upload logic executed.");
+    console.log("Final upload logic executed.", newProduct);
     setIsUploadConfirmModalOpen(false);
   };
 
@@ -110,7 +100,7 @@ function ProductForm() {
     const files = Array.from(e.target.files);
     const validFiles = files.filter((file) => file.size <= 2 * 1024 * 1024); // Limit to 2MB
     const newImages = validFiles.map((file) => URL.createObjectURL(file));
-    setImages((prev) => [...prev, ...newImages]);
+    setNewProduct({ ...newProduct, prod_images: newImages });
   };
 
   const handleAddMoreImages = () => {
@@ -118,47 +108,39 @@ function ProductForm() {
   };
 
   const removeImage = (index) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+    setNewProduct({
+      ...newProduct,
+      prod_images: newProduct.prod_images.filter((_, i) => i !== index),
+    });
   };
-
-  //key features
-  const options = [
-    "pay_over_time",
-    "rx_required",
-    "light_weight",
-    "2_years_warranty",
-    "free_shipping",
-  ];
 
   const addNewHighlightField = () => {
-    setHighlightsList([...highlightsList, ""]);
-  };
-
-  const updateHighlightText = (index, value) => {
-    const updatedList = [...highlightsList];
-    updatedList[index] = value;
-    setHighlightsList(updatedList);
-  };
-
-  const removeHighlightField = (index) => {
-    const updatedList = highlightsList.filter((_, i) => i !== index);
-    setHighlightsList(updatedList);
-  };
-
-  // product detailed description
-  const handleInputChange = (index, field, value) => {
-    const updatedPairs = [...keyValuePairs];
-    updatedPairs[index][field] = value;
-    setKeyValuePairs(updatedPairs);
+    setNewProduct({
+      ...newProduct,
+      prod_highlight: [...newProduct.prod_highlight, pHL],
+    });
+    setPHL("");
   };
 
   const handleAddMore = () => {
-    setKeyValuePairs([...keyValuePairs, { key: "", value: "" }]);
+    setNewProduct({
+      ...newProduct,
+      prod_detailed_desc: [
+        ...newProduct.prod_detailed_desc,
+        { [pair.key.trim()]: pair.value.trim() },
+      ],
+    });
+    setPair({ key: "", value: "" });
   };
 
   const handleRemovePair = (index) => {
-    const updatedPairs = keyValuePairs.filter((_, i) => i !== index);
-    setKeyValuePairs(updatedPairs);
+    const updatedPairs = newProduct.prod_detailed_desc.filter(
+      (_, i) => i != index
+    );
+    setNewProduct({
+      ...newProduct,
+      prod_detailed_desc: updatedPairs,
+    });
   };
 
   const handleAddCategory = () => {
@@ -173,10 +155,14 @@ function ProductForm() {
     if (newBrand.trim()) {
       const updatedBrands = [...brands, newBrand.trim()];
       setBrands(updatedBrands); // Append the new brand
-      setSelectedBrand(newBrand.trim()); // Set the new brand as selected
       setNewBrand("");
       setIsModalOpen(false); // Close the modal
     }
+  };
+
+  const inputHandler = (e) => {
+    const { name, value } = e.target;
+    setNewProduct({ ...newProduct, [name]: name == "prod_id" ? value.trim() : value });
   };
 
   return (
@@ -192,8 +178,11 @@ function ProductForm() {
                 <label className="block text-gray-600 mb-2">Product Name</label>
                 <input
                   type="text"
-                  placeholder="Name"
+                  placeholder="Product Name"
+                  name="prod_name"
                   maxLength="30"
+                  value={newProduct.prod_name}
+                  onChange={inputHandler}
                   className="w-full border border-gray-300 rounded px-4 py-2"
                 />
                 <p className="text-sm text-gray-400">
@@ -206,8 +195,9 @@ function ProductForm() {
                 <div className="flex items-center">
                   <select
                     className="w-full border border-gray-300 rounded px-4 py-2"
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    value={newProduct.category}
+                    onChange={inputHandler}
+                    name="category"
                   >
                     <option value="">Select</option>
                     {categories.map((category, index) => (
@@ -259,10 +249,12 @@ function ProductForm() {
               <div className="mb-4">
                 <label className="block text-gray-600 mb-2">Prod Id</label>
                 <input
-                  type="number"
+                  type="text"
                   placeholder="Enter Product ID"
+                  name="prod_id"
+                  value={newProduct.prod_id}
+                  onChange={inputHandler}
                   className="w-full border border-gray-300 rounded px-4 py-2"
-                  min="0"
                 />
               </div>
 
@@ -271,9 +263,10 @@ function ProductForm() {
                 <label className="block text-gray-600 mb-2">Brand Name</label>
                 <div className="flex items-center">
                   <select
+                    name="brand_name"
                     className="w-full border border-gray-300 rounded px-4 py-2"
-                    value={selectedBrand} // Bind the selected value
-                    onChange={(e) => setSelectedBrand(e.target.value)} // Update the selected brand
+                    value={newProduct.brand_name} // Bind the selected value
+                    onChange={inputHandler} // Update the selected brand
                   >
                     <option value="">Select</option>
                     {brands.map((brand, index) => (
@@ -330,40 +323,44 @@ function ProductForm() {
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 >
                   <div className="flex flex-wrap gap-2 ">
-                    {selectedOptions.map((option, index) => (
-                      <div
-                        key={index}
-                        className="bg-customBlue text-white px-2 py-1 rounded flex items-center gap-2"
-                      >
-                        <span>{option}</span>
-                        <button
-                          type="button"
-                          className="text-white bg-customBlue rounded-full w-5 h-5 flex items-center justify-center"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveOption(option);
-                          }}
+                    {Object.entries(newProduct.key_features)
+                      .filter((feature) => feature[1])
+                      .map((f) => f[0])
+                      .map((option, index) => (
+                        <div
+                          key={index}
+                          className="bg-customBlue text-white px-2 py-4 rounded flex items-center gap-2"
                         >
-                          &times;
-                        </button>
-                      </div>
-                    ))}
+                          <span>{option}</span>
+                          <button
+                            type="button"
+                            className="text-white bg-customBlue rounded-full w-5 h-5 flex items-center justify-center"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // handleRemoveOption(option);
+                              featuresHandler(option, false);
+                            }}
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ))}
                   </div>
-                  <input
+                  {/* <input
                     type="text"
                     placeholder="Select features"
                     readOnly
                     className="w-full bg-transparent focus:outline-none"
-                  />
+                  /> */}
                 </div>
 
                 {isDropdownOpen && (
-                  <div className="absolute z-10 bg-white border border-gray-300 rounded w-[35%] mt-2 max-h-40 overflow-auto">
+                  <div className="relative z-10 bg-white border border-gray-300 rounded w-[35%] mt-2 max-h-40 overflow-auto">
                     {options.map((option, index) => (
                       <div
                         key={index}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleSelectOption(option)}
+                        onClick={() => featuresHandler(option, true)}
                       >
                         {option}
                       </div>
@@ -379,9 +376,10 @@ function ProductForm() {
                 </label>
                 <textarea
                   placeholder="Description"
+                  name="prod_desc"
                   maxLength="3000" // Allows more characters but limits word count
-                  value={description}
-                  onChange={handleChange}
+                  value={newProduct.prod_desc}
+                  onChange={inputHandler}
                   className={`w-full border rounded px-4 py-2 ${
                     isDisabled ? "border-red-500" : "border-gray-300"
                   }`}
@@ -401,49 +399,53 @@ function ProductForm() {
                 </label>
                 <div className="p-6 bg-gray-100">
                   <div className="max-w-7xl mx-auto bg-white p-8 rounded-md shadow">
-                    {keyValuePairs.map((pair, index) => (
-                      <div key={index} className="grid grid-cols-2 gap-4 mb-4">
-                        {/* Key Text Area */}
-                        <div>
-                          <label className="block text-gray-600 mb-2">
-                            Key Point
-                          </label>
-                          <textarea
-                            placeholder="Enter Key Point"
-                            value={pair.key}
-                            onChange={(e) =>
-                              handleInputChange(index, "key", e.target.value)
-                            }
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                          />
-                        </div>
-                        {/* Value Text Area */}
-                        <div>
-                          <label className="block text-gray-600 mb-2">
-                            Feature
-                          </label>
-                          <textarea
-                            placeholder="Enter Feature"
-                            value={pair.value}
-                            onChange={(e) =>
-                              handleInputChange(index, "value", e.target.value)
-                            }
-                            className="w-full border border-gray-300 rounded px-4 py-2"
-                          />
-                        </div>
-                        {/* Remove Button */}
-                        <div className="col-span-2 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleRemovePair(index)}
-                            className="text-red-500 hover:underline"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      {newProduct.prod_detailed_desc.length > 0 &&
+                        newProduct.prod_detailed_desc.map((dtl, index) => (
+                          <React.Fragment key={index}>
+                            <div>{Object.keys(dtl)[0]}</div>
+                            <div>{Object.values(dtl)[0]}</div>
+                            {/* Remove Button */}
+                            <div className="col-span-2 text-right">
+                              <button
+                                type="button"
+                                onClick={() => handleRemovePair(index)}
+                                className="text-red-500 hover:underline"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </React.Fragment>
+                        ))}
 
+                      <div>
+                        <label className="block text-gray-600 mb-2">
+                          Key Point
+                        </label>
+                        <textarea
+                          placeholder="Enter Key Point"
+                          value={pair.key}
+                          onChange={(e) =>
+                            setPair({ ...pair, key: e.target.value })
+                          }
+                          className="w-full border border-gray-300 rounded px-4 py-2"
+                        />
+                      </div>
+                      {/* Value Text Area */}
+                      <div>
+                        <label className="block text-gray-600 mb-2">
+                          Feature
+                        </label>
+                        <textarea
+                          placeholder="Enter Feature"
+                          value={pair.value}
+                          onChange={(e) =>
+                            setPair({ ...pair, value: e.target.value })
+                          }
+                          className="w-full border border-gray-300 rounded px-4 py-2"
+                        />
+                      </div>
+                    </div>
                     {/* Add More Button */}
                     <div className="text-right">
                       <button
@@ -467,31 +469,25 @@ function ProductForm() {
                 </label>
                 <div className="p-6 bg-gray-100 ">
                   <div className="max-w-7xl mx-auto bg-white p-8 rounded-md shadow">
-                    {highlightsList.map((highlight, index) => (
-                      <div key={index} className="mb-4">
-                        <label className="block text-gray-600 mb-2">
-                          Highlight {index + 1}
-                        </label>
-                        <textarea
-                          placeholder="Enter highlight"
-                          value={highlight}
-                          onChange={(e) =>
-                            updateHighlightText(index, e.target.value)
-                          }
-                          className="w-full border border-gray-300 rounded px-4 py-2"
-                          rows="2"
-                        />
-                        {index > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => removeHighlightField(index)}
-                            className="text-red-500 hover:underline mt-2"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                    {newProduct.prod_highlight.length > 0 && (
+                      <ul>
+                        {newProduct.prod_highlight.map((hl, index) => (
+                          <li key={index}>{hl}</li>
+                        ))}
+                      </ul>
+                    )}
+                    <div className="mb-4">
+                      <label className="block text-gray-600 mb-2">
+                        Highlight
+                      </label>
+                      <textarea
+                        placeholder="Enter highlight"
+                        value={pHL}
+                        onChange={({ target }) => setPHL(target.value)}
+                        className="w-full border border-gray-300 rounded px-4 py-2"
+                        rows="2"
+                      />
+                    </div>
 
                     {/* Add More Button */}
                     <div className="text-right">
@@ -523,8 +519,8 @@ function ProductForm() {
                       inputMode="numeric"
                       pattern="[0-9]*"
                       className="w-full border border-gray-300 rounded px-4 py-2"
-                      value={actualPrice}
-                      onChange={(e) => handleInput(e, setActualPrice)}
+                      value={newProduct.prod_value}
+                      onChange={(e) => handleInput(e, "prod_value")}
                       onKeyDown={(e) =>
                         ["e", "E", "+", "-"].includes(e.key) &&
                         e.preventDefault()
@@ -543,7 +539,10 @@ function ProductForm() {
                       pattern="[0-9]*"
                       className="w-full border border-gray-300 rounded px-4 py-2"
                       value={dealerPrice}
-                      onChange={(e) => handleInput(e, setDealerPrice)}
+                      onChange={(e) =>
+                        !isNaN(e.target.value.trim()) &&
+                        setDealerPrice(e.target.value)
+                      }
                       onKeyDown={(e) =>
                         ["e", "E", "+", "-"].includes(e.key) &&
                         e.preventDefault()
@@ -559,7 +558,7 @@ function ProductForm() {
                   type="text"
                   placeholder="Discount in %"
                   className="w-full border border-gray-300 rounded px-4 py-2 bg-gray-100"
-                  value={`${calculateDiscount()} %`}
+                  value={`${discount} %`}
                   readOnly
                 />
               </div>
@@ -575,6 +574,13 @@ function ProductForm() {
                       type="radio"
                       name="productStatus"
                       value="live"
+                      checked={newProduct.isFeatured}
+                      onChange={({ target }) =>
+                        setNewProduct({
+                          ...newProduct,
+                          isFeatured: target.value == "live" ? true : false,
+                        })
+                      }
                       className="form-radio text-blue-600"
                     />
                     <span className="ml-2">Live</span>
@@ -585,10 +591,17 @@ function ProductForm() {
                     <input
                       type="radio"
                       name="productStatus"
-                      value="onboard"
+                      value="suspend"
+                      checked={!newProduct.isFeatured}
+                      onChange={({ target }) =>
+                        setNewProduct({
+                          ...newProduct,
+                          isFeatured: target.value == "live" ? true : false,
+                        })
+                      }
                       className="form-radio text-blue-600"
                     />
-                    <span className="ml-2">On Board</span>
+                    <span className="ml-2">Suspend</span>
                   </label>
                 </div>
               </div>
@@ -606,7 +619,7 @@ function ProductForm() {
                   onChange={handleImageUpload}
                 />
 
-                {images.length === 0 ? (
+                {newProduct.prod_images.length === 0 ? (
                   // Dashed box for uploading images
                   <div
                     className="w-full h-40 border-2 border-dashed border-gray-300 flex flex-col justify-center items-center cursor-pointer"
@@ -618,7 +631,7 @@ function ProductForm() {
                 ) : (
                   // Display uploaded images
                   <div className="flex flex-wrap gap-4 mt-4">
-                    {images.map((image, index) => (
+                    {newProduct.prod_images.map((image, index) => (
                       <div
                         key={index}
                         className="relative w-24 h-24 border rounded overflow-hidden"
@@ -640,7 +653,7 @@ function ProductForm() {
                   </div>
                 )}
 
-                {images.length > 0 && (
+                {newProduct.prod_images.length > 0 && (
                   <div className="mt-4">
                     <button
                       type="button"
@@ -655,10 +668,10 @@ function ProductForm() {
                 <p className="text-sm text-gray-400 mt-2">
                   Minimum of 6 images required. Maximum 2MB each.
                 </p>
-                {images.length < 6 && (
+                {newProduct.prod_images.length < 6 && (
                   <p className="text-sm text-red-500 mt-2">
-                    You need at least 6 images. Currently {images.length}{" "}
-                    uploaded.
+                    You need at least 6 images. Currently{" "}
+                    {newProduct.prod_images.length} uploaded.
                   </p>
                 )}
               </div>
@@ -673,8 +686,21 @@ function ProductForm() {
                   pattern="[0-9]*"
                   placeholder="Enter stock quantity"
                   className="w-full border border-gray-300 rounded px-4 py-2"
-                  value={stockQuantity}
-                  onChange={handleStockInputChange}
+                  value={
+                    newProduct.stockQuantity == 0
+                      ? ""
+                      : newProduct.stockQuantity
+                  }
+                  onChange={({ target }) =>
+                    !isNaN(target.value.trim()) &&
+                    setNewProduct({
+                      ...newProduct,
+                      stockQuantity:
+                        target.value.trim() == ""
+                          ? 0
+                          : parseInt(target.value.trim()),
+                    })
+                  }
                   onKeyDown={(e) =>
                     ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()
                   } // Prevent invalid characters

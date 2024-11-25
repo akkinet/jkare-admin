@@ -4,7 +4,7 @@ import { IoWifiSharp } from "react-icons/io5";
 import ProductForm from "./ProductForm";
 
 const ProductTable = ({ data }) => {
-  const [products, setProducts] = useState(data);
+  const [products, setProducts] = useState(data.products);
   const [searchTerm, setSearchTerm] = useState("");
   const [hoveredData, setHoveredData] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -225,7 +225,7 @@ const ProductTable = ({ data }) => {
         </button>
       </div>
       
-          {showForm && <ProductForm />}
+          {showForm && <ProductForm brandList={data.brands} catList={data.categories} />}
     </div>
   );
 };

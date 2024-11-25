@@ -26,8 +26,10 @@ export const GET = async (req) => {
 
     const result = await ddbDocClient.send(command);
     const products = result.Count > 0 ? result.Items : [];
+    const brands = result.Count > 0 ? Array.from(new Set(result.Items.map(item => item.brand_name))) : [];
+    const categories = result.Count > 0 ? Array.from(new Set(result.Items.map(item => item.category))) : [];
 
-    return NextResponse.json(products, { status: 200 });
+    return NextResponse.json({products, brands, categories}, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: error.message }, { status: 500 });
