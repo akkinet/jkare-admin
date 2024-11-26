@@ -1,4 +1,5 @@
 import Vendor from "@/components/Vendor";
+export const dynamic = 'force-dynamic';
 
 const page = async () => {
   try {

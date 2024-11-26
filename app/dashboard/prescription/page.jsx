@@ -1,4 +1,5 @@
 import Prescription from "@/components/Prescription";
+export const dynamic = 'force-dynamic';
 
 async function fetchPrescriptions() {
   try {
