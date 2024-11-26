@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { IoWifiSharp } from "react-icons/io5";
+import { CiNoWaitingSign } from "react-icons/ci";
 import ProductForm from "./ProductForm";
 
 const ProductTable = ({ data }) => {
@@ -13,13 +14,15 @@ const ProductTable = ({ data }) => {
     const term = isNaN(query) ? query : '';
     setSearchTerm(term)
     let url = `/api/product`;
-    if(term.length > 0)
+    if (term.length > 0)
       url += `?query=${term}`;
 
     const res = await fetch(url)
     const data = await res.json();
+
     setProducts(data.products);
   }
+  console.log("data", data);
 
   return (
     <div className="bg-gray-100  flex flex-col overflow-hidden">
@@ -44,7 +47,7 @@ const ProductTable = ({ data }) => {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto max-h-[40vh] relative">
+            <div className="overflow-x-auto max-h-[50vh] relative">
               <table className="table-auto w-full border-collapse border border-gray-300">
                 <thead className="bg-gray-100 sticky top-0 z-50">
                   <tr>
@@ -53,15 +56,15 @@ const ProductTable = ({ data }) => {
                       Is Featured
                     </th>
                     <th className="border border-gray-300 px-4 py-2">Name</th>
-                    <th className="border border-gray-300 px-4 py-2">Image</th>
+                    {/* <th className="border border-gray-300 px-4 py-2">Image</th> */}
                     <th className="border border-gray-300 px-4 py-2">
                       Category
                     </th>
                     <th className="border border-gray-300 px-4 py-2">
                       Product ID
                     </th>
-                    <th className="border border-gray-300 px-4 py-2">Brand</th>
                     <th className="border border-gray-300 px-4 py-2">Vendor</th>
+                    <th className="border border-gray-300 px-4 py-2">Brand</th>
                     <th className="border border-gray-300 px-4 py-2">Stock</th>
                     <th className="border border-gray-300 px-4 py-2">Price</th>
                     <th className="border border-gray-300 px-4 py-2">
@@ -76,68 +79,117 @@ const ProductTable = ({ data }) => {
                   {products.map((product, index) => (
                     <tr key={product.prod_id}>
                       {/* Serial Number */}
-                      <td className="border border-gray-300 px-4 py-2">
+                      <td className="border border-gray-300 px-4 py-0">
                         {index + 1}
                       </td>
 
                       {/* Is Featured */}
 
-                      <td className="border border-gray-300 px-4 py-2">
+                      <td className="border border-gray-300 px-2 py-2">
                         {product.isFeatured ? (
                           <div className="relative flex justify-center items-center">
-                            {/* Pulsating Effect */}
-                            <span className="absolute inset-0 rounded-md bg-green-500 opacity-50 animate-ping"></span>
-                            {/* Centered Text */}
-                            <span className="relative z-10 flex items-center justify-center px-6 py-2 bg-green-600 text-white text-lg font-semibold rounded-md shadow-lg">
+                            {/* Button with Blinking Dot */}
+                            <span className="relative flex items-center justify-center px-4 py-2 bg-green-600 text-white text-lg font-semibold rounded-md shadow-lg">
                               Live
                               <IoWifiSharp className="w-5 h-5 ml-2" />
+                              {/* Blinking Dot in Top-Right Corner */}
+                              <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-600"></span>
+                              </span>
                             </span>
                           </div>
                         ) : (
                           <div className="relative flex justify-center items-center">
-                            {/* Pulsating Effect */}
-                            <span className="absolute inset-0 rounded-md bg-red-500 opacity-50 animate-ping"></span>
-                            {/* Centered Text */}
-                            <span className="relative z-10 flex items-center justify-center px-6 py-2  bg-red-600 text-white text-lg font-semibold rounded-md shadow-lg">
-                              On Board
+                            {/* Button with Blinking Dot */}
+                            <span className="relative flex items-center justify-center px-4 py-2 bg-red-600 text-white text-lg font-semibold rounded-md shadow-lg">
+                              Hold
+                              <CiNoWaitingSign className="w-5 h-5 ml-2" />
+                              {/* Blinking Dot in Top-Right Corner */}
+                              <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+                              </span>
                             </span>
                           </div>
                         )}
                       </td>
 
+
+
                       {/* Product Name */}
                       <td className="border border-gray-300 px-4 py-2">
-                        {product.prod_name}
+                        <div className="relative group">
+                          {/* Truncated Text */}
+                          <span className="block truncate max-w-xs overflow-hidden whitespace-nowrap text-ellipsis">
+                            {product.prod_name}
+                          </span>
+                          {/* Tooltip on Hover */}
+                          <div className="absolute left-0 top-full mt-1 hidden w-auto max-w-xs bg-gray-700 text-white text-sm font-medium px-2 py-1 rounded shadow-lg group-hover:block">
+                            {product.prod_name}
+                          </div>
+                        </div>
                       </td>
 
+
                       {/* Product Image */}
-                      <td className="border border-gray-300 px-4 py-2 relative">
+                      {/* <td className="border border-gray-300 px-4 py-2 relative">
                         <img
                           src={product.prod_images[0]}
                           alt={`Product ${product.prod_id}`}
                           className="w-20 h-20 object-cover"
                         />
-                      </td>
+                      </td> */}
 
                       {/* Category */}
                       <td className="border border-gray-300 px-4 py-2">
-                        {product.category}
+                        <div className="relative group">
+                          {/* Truncated Text */}
+                          <span className="block truncate max-w-xs overflow-hidden whitespace-nowrap text-ellipsis">
+                            {product.category}
+                          </span>
+                          {/* Tooltip on Hover */}
+                          <div className="absolute left-0 top-full mt-1 hidden w-auto max-w-xs bg-gray-700 text-white text-sm font-medium px-2 py-1 rounded shadow-lg group-hover:block">
+                            {product.category}
+                          </div>
+                        </div>
                       </td>
+
 
                       {/* Product ID */}
                       <td className="border border-gray-300 px-4 py-2">
                         {product.prod_id}
                       </td>
 
-                      {/* Brand */}
-                      <td className="border border-gray-300 px-4 py-2">
-                        {product.brand_name}
-                      </td>
-
                       {/* Vendor */}
                       <td className="border border-gray-300 px-4 py-2">
-                        {product.vendor_name}
+                        <div className="relative group">
+                          {/* Truncated Text */}
+                          <span className="block truncate max-w-xs overflow-hidden whitespace-nowrap text-ellipsis">
+                            {product.vendor_name}
+                          </span>
+                          {/* Tooltip on Hover */}
+                          <div className="absolute left-0 top-full mt-1 hidden w-auto max-w-xs bg-gray-700 text-white text-sm font-medium px-2 py-1 rounded shadow-lg group-hover:block">
+                            {product.vendor_name}
+                          </div>
+                        </div>
                       </td>
+
+                      {/* Brand */}
+                      <td className="border border-gray-300 px-4 py-2">
+                        <div className="relative group">
+                          {/* Truncated Text */}
+                          <span className="block truncate max-w-xs overflow-hidden whitespace-nowrap text-ellipsis">
+                            {product.brand_name}
+                          </span>
+                          {/* Tooltip on Hover */}
+                          <div className="absolute left-0 top-full mt-1 hidden w-auto max-w-xs bg-gray-700 text-white text-sm font-medium px-2 py-1 rounded shadow-lg group-hover:block">
+                            {product.brand_name}
+                          </div>
+                        </div>
+                      </td>
+
+
 
                       {/* Stock */}
                       <td className="border border-gray-300 px-4 py-2">
@@ -151,61 +203,44 @@ const ProductTable = ({ data }) => {
 
                       {/* Highlights with Hover */}
                       <td
-                        className="border border-gray-300 px-4 py-2 truncate relative overflow-visible"
-                        onMouseEnter={() =>
-                          setHoveredData(product.prod_highlight.join(", "))
-                        }
-                        onMouseLeave={() => setHoveredData(null)}
+                        className="border border-gray-300 px-4 py-2 relative group"
                       >
-                        {product.prod_highlight[0]}
-                        {hoveredData === product.prod_highlight.join(", ") && (
-                          <div
-                            className="absolute z-50 bg-white border border-gray-300 p-2 shadow-lg max-w-xs whitespace-normal break-words"
-                            style={{ top: "-10px" }}
-                          >
-                            {product.prod_highlight.join(", ")}
-                          </div>
-                        )}
+                        {/* Truncated Text */}
+                        <span className="block truncate max-w-xs overflow-hidden whitespace-nowrap text-ellipsis">
+                          {product.prod_highlight[0]}
+                        </span>
+
+                        {/* Tooltip on Hover */}
+                        <div
+                          className="absolute z-50 bg-white border border-gray-300 p-2 shadow-lg max-w-xs whitespace-normal break-words hidden group-hover:block"
+                          style={{ top: "100%", left: 0, marginTop: "0.25rem" }}
+                        >
+                          {product.prod_highlight.join(", ")}
+                        </div>
                       </td>
 
+
                       {/* Features with Hover */}
-                      <td
-                        className="border border-gray-300 px-4 py-2 truncate relative overflow-visible"
-                        onMouseEnter={() =>
-                          setHoveredData(
-                            Object.entries(product.key_features)
-                              .map(
-                                ([key, value]) =>
-                                  `${key}: ${value ? "Yes" : "No"}`
-                              )
-                              .join(", ")
-                          )
-                        }
-                        onMouseLeave={() => setHoveredData(null)}
-                      >
-                        {Object.keys(product.key_features)[0]}:{" "}
-                        {Object.values(product.key_features)[0] ? "Yes" : "No"}
-                        {hoveredData ===
-                          Object.entries(product.key_features)
-                            .map(
-                              ([key, value]) =>
-                                `${key}: ${value ? "Yes" : "No"}`
-                            )
-                            .join(", ") && (
-                          <div
-                            className="absolute z-50 bg-white border border-gray-300 p-2 shadow-lg max-w-xs whitespace-normal break-words"
-                            style={{ top: "-10px" }}
-                          >
-                            {Object.entries(product.key_features).map(
-                              ([key, value]) => (
-                                <div key={key}>
-                                  {key}: {value ? "Yes" : "No"}
-                                </div>
-                              )
-                            )}
-                          </div>
-                        )}
+                      <td className="border border-gray-300 px-4 py-2 relative group">
+                        {/* Truncated Text */}
+                        <span className="block truncate max-w-xs overflow-hidden whitespace-nowrap text-ellipsis">
+                          {Object.keys(product.key_features)[0]}:{" "}
+                          {Object.values(product.key_features)[0] ? "Yes" : "No"}
+                        </span>
+
+                        {/* Tooltip on Hover */}
+                        <div
+                          className="absolute z-50 bg-white border border-gray-300 p-2 shadow-lg max-w-xs whitespace-normal break-words hidden group-hover:block"
+                          style={{ top: "100%", left: 0, marginTop: "0.25rem" }}
+                        >
+                          {Object.entries(product.key_features).map(([key, value]) => (
+                            <div key={key}>
+                              {key}: {value ? "Yes" : "No"}
+                            </div>
+                          ))}
+                        </div>
                       </td>
+
                     </tr>
                   ))}
                 </tbody>
@@ -224,8 +259,8 @@ const ProductTable = ({ data }) => {
           Add Product
         </button>
       </div>
-      
-          {showForm && <ProductForm brandList={data.brands} catList={data.categories} vendorList={data.vendors} />}
+
+      {showForm && <ProductForm brandList={data.brands} catList={data.categories} vendorList={data.vendors} />}
     </div>
   );
 };
