@@ -50,7 +50,7 @@ const ProductTable = ({ data }) => {
                   <tr>
                     <th className="border border-gray-300 px-4 py-2">S No</th>
                     <th className="border border-gray-300 px-4 py-2">
-                      Is Featured
+                      Status
                     </th>
                     <th className="border border-gray-300 px-4 py-2">Name</th>
                     <th className="border border-gray-300 px-4 py-2">Image</th>
@@ -99,7 +99,7 @@ const ProductTable = ({ data }) => {
                             <span className="absolute inset-0 rounded-md bg-red-500 opacity-50 animate-ping"></span>
                             {/* Centered Text */}
                             <span className="relative z-10 flex items-center justify-center px-6 py-2  bg-red-600 text-white text-lg font-semibold rounded-md shadow-lg">
-                              On Board
+                              Suspend
                             </span>
                           </div>
                         )}

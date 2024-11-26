@@ -104,14 +104,12 @@ function ProductForm({ brandList, catList, vendorList }) {
       rx_required: false,
       light_weight: false,
       "2_years_warranty": false,
-      free_shipping: false
-    }
-    const uploadObj = {...newProduct}
-    uploadObj.key_features = {...uploadObj.key_features, ...productFeatures}
-    if(uploadObj.prod_id == "")
-      uploadObj.prod_id = new Date().getTime();
-    else
-      uploadObj.prod_id = parseInt(newProduct.prod_id)
+      free_shipping: false,
+    };
+    const uploadObj = { ...newProduct };
+    uploadObj.key_features = { ...uploadObj.key_features, ...productFeatures };
+    if (uploadObj.prod_id == "") uploadObj.prod_id = new Date().getTime();
+    else uploadObj.prod_id = parseInt(newProduct.prod_id);
 
     const response = await fetch("/api/product", {
       method: "POST",
@@ -138,18 +136,18 @@ function ProductForm({ brandList, catList, vendorList }) {
       vendor_name: "",
       discount: 0,
     });
-    alert("product uploaded")
+    alert("product uploaded");
     console.log("Upload Response:", result);
   };
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter((file) => file.size <= 2 * 1024 * 1024); // Limit to 2MB
-  
+
     const promises = validFiles.map((file) => {
       return new Promise((resolve) => {
         const reader = new FileReader();
-  
+
         reader.onloadend = () => {
           resolve({
             fileName: file.name,
@@ -158,11 +156,11 @@ function ProductForm({ brandList, catList, vendorList }) {
             filePreview: reader.result,
           });
         };
-  
+
         reader.readAsDataURL(file);
       });
     });
-  
+
     Promise.all(promises).then((results) => {
       setNewProduct((prevState) => ({
         ...prevState,
@@ -213,7 +211,7 @@ function ProductForm({ brandList, catList, vendorList }) {
 
   const handleAddCategory = () => {
     if (newCategory.trim()) {
-      setCategories([...categories, newCategory]);
+      setCategories([...categories, `#${newCategory.trim()}`]);
       setNewCategory("");
       setIsAddCategoryModalOpen(false);
     }
@@ -273,7 +271,9 @@ function ProductForm({ brandList, catList, vendorList }) {
                     <option value="">Select</option>
                     {categories.map((category, index) => (
                       <option key={index} value={category}>
-                        {category}
+                        {category[0] == "#"
+                          ? category.slice(1)
+                          : category}
                       </option>
                     ))}
                   </select>
@@ -324,7 +324,10 @@ function ProductForm({ brandList, catList, vendorList }) {
                   placeholder="Enter Product ID"
                   name="prod_id"
                   value={newProduct.prod_id}
-                  onChange={({target}) => !isNaN(target.value) && setNewProduct({...newProduct, prod_id: target.value})}
+                  onChange={({ target }) =>
+                    !isNaN(target.value) &&
+                    setNewProduct({ ...newProduct, prod_id: target.value })
+                  }
                   className="w-full border border-gray-300 rounded px-4 py-2"
                 />
               </div>
