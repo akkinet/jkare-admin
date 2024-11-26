@@ -42,7 +42,7 @@ const ProductTable = () => {
 
   return (
     <div className="p-6 bg-gray-100">
-      <div className="max-w-7xl p-8 mx-auto relative bg-white border-2 border-red-500">
+      <div className="max-w-6xl p-8 mx-auto relative bg-white border-2 border-red-500">
         <h1 className="text-2xl font-bold mb-4">Product Table</h1>
 
         {/* Error Message */}
