@@ -25,15 +25,13 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
     prod_highlight: [],
     prod_images: [],
     prod_name: "",
-    prod_value: "",
+    prod_value: 0,
     stockQuantity: 0,
     vendor_name: "",
     discount: 0,
   });
   const [pair, setPair] = useState({ key: "", value: "" });
   const [pHL, setPHL] = useState("");
-
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [dealerPrice, setDealerPrice] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,13 +71,6 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
     return 0;
   }, [newProduct.prod_value, dealerPrice]);
 
-  const handleInput = (e, setter) => {
-    let value;
-    if (setter == "prod_value")
-      value = parseInt(e.target.value.replace(/[^0-9]/g), ""); // Remove non-numeric input
-    setNewProduct({ ...newProduct, [setter]: value });
-  };
-
   const wordCount = useMemo(() => {
     const len = newProduct.prod_desc.trim().split(/\s+/).filter(Boolean).length;
     if (len == 300) setIsDisabled(true);
@@ -108,7 +99,6 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
 
   const handleFinalUpload = async () => {
     // Handle the upload logic
-    console.log("Final upload logic executed.", newProduct);
     setIsUploadConfirmModalOpen(false);
 
     const productFeatures = {
@@ -148,8 +138,9 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
       vendor_name: "",
       discount: 0,
     });
-    alert("product uploaded");
     console.log("Upload Response:", result);
+    // console.log("Final upload logic executed.", newProduct);
+    alert("product uploaded");
   };
 
   const handleImageUpload = (e) => {
@@ -222,7 +213,7 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
   };
 
   const handleAddCategory = () => {
-    if (newCategory.trim()) {
+    if (newCategory.trim() != "") {
       setCategories([...categories, `#${newCategory.trim()}`]);
       setNewCategory("");
       setIsAddCategoryModalOpen(false);
@@ -292,9 +283,7 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
                     <option value="">Select</option>
                     {categories.map((category, index) => (
                       <option key={index} value={category}>
-                        {category[0] == "#"
-                          ? category.slice(1)
-                          : category}
+                        {category[0] == "#" ? category.slice(1) : category}
                       </option>
                     ))}
                   </select>
@@ -316,6 +305,12 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
                         className="w-full border border-gray-300 rounded px-4 py-2 mb-4"
                         value={newCategory}
                         onChange={(e) => setNewCategory(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault(); // Prevent default Enter behavior
+                            handleAddCategory(); // Call the save handler
+                          }
+                        }}
                         placeholder="Enter new category"
                       />
                       <div className="flex justify-end">
@@ -325,13 +320,12 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
                         >
                           Cancel
                         </button>
-                        <button
+                        <input
                           type="button"
-                          className="px-4 py-2 bg-blue-500 text-white rounded"
                           onClick={handleAddCategory}
-                        >
-                          Save
-                        </button>
+                          className="px-4 py-2 bg-blue-500 text-white rounded"
+                          value="Save"
+                        />
                       </div>
                     </div>
                   </div>
@@ -389,6 +383,12 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
                         className="w-full border border-gray-300 rounded px-4 py-2 mb-4"
                         value={newBrand}
                         onChange={(e) => setNewBrand(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault(); // Prevent default Enter behavior
+                            handleAddBrand(); // Call the save handler
+                          }
+                        }}
                         placeholder="Enter new brand name"
                       />
                       <div className="flex justify-end">
@@ -450,7 +450,9 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
                           <button
                             type="button"
                             className="text-white bg-customBlue rounded-full w-5 h-5 flex items-center justify-center"
-                            onClick={() => featuresHandler(selectedFeature, false)}
+                            onClick={() =>
+                              featuresHandler(selectedFeature, false)
+                            }
                           >
                             &times;
                           </button>
@@ -466,7 +468,9 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
                           type="checkbox"
                           id={`feature-${index}`}
                           checked={!!newProduct.key_features[option]}
-                          onChange={(e) => featuresHandler(option, e.target.checked)}
+                          onChange={(e) =>
+                            featuresHandler(option, e.target.checked)
+                          }
                           className="cursor-pointer"
                           required
                         />
@@ -482,7 +486,6 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
                 </div>
               </div>
 
-
               {/* Prod Description */}
               <div className="mb-4">
                 <label className="block text-gray-600 mb-2">
@@ -494,8 +497,9 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
                   maxLength="3000" // Allows more characters but limits word count
                   value={newProduct.prod_desc}
                   onChange={inputHandler}
-                  className={`w-full border rounded px-4 py-2 ${isDisabled ? "border-red-500" : "border-gray-300"
-                    }`}
+                  className={`w-full border rounded px-4 py-2 ${
+                    isDisabled ? "border-red-500" : "border-gray-300"
+                  }`}
                   disabled={isDisabled}
                   required
                 />
@@ -516,7 +520,6 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
                   className="w-full border rounded px-4 py-2 border-gray-300"
                 />
               </div>
-
 
               {/* Product Detailed Description */}
               <div className="mb-4">
@@ -649,13 +652,23 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
                       inputMode="numeric"
                       pattern="[0-9]*"
                       className="w-full border border-gray-300 rounded px-4 py-2"
-                      value={newProduct.prod_value}
-                      onChange={(e) => handleInput(e, "prod_value")}
-                      onKeyDown={(e) =>
-                        ["e", "E", "+", "-"].includes(e.key) &&
-                        e.preventDefault()
-                      } // Disable non-numeric input
-                      required
+                      value={
+                        newProduct.prod_value == 0 ? "" : newProduct.prod_value
+                      }
+                      onChange={(e) => {
+                        const value = e.target.value.trim();
+                        !isNaN(value) &&
+                          setNewProduct({
+                            ...newProduct,
+                            prod_value:
+                              value == "" ? 0 : parseInt(value),
+                          });
+                      }}
+                      onKeyDown={(e) => {
+                        if (["e", "E", "+", "-"].includes(e.key)) {
+                          e.preventDefault(); // Disable non-numeric input
+                        }
+                      }}
                     />
                   </div>
                   {/* Dealer Price */}
