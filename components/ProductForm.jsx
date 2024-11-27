@@ -477,6 +477,18 @@ function ProductForm({ brandList, catList, vendorList }) {
                     : `Words: ${wordCount}/300`}
                 </p>
               </div>
+              {/* How to use  */}
+              <div className="mb-4">
+                <label className="block text-gray-600 mb-2">How to Use</label>
+                <textarea
+                  placeholder="Describe how to use this product"
+                  name="how_to_use"
+                  value={newProduct.how_to_use}
+                  onChange={inputHandler}
+                  className="w-full border rounded px-4 py-2 border-gray-300"
+                />
+              </div>
+
 
               {/* Product Detailed Description */}
               <div className="mb-4">

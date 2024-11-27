@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { IoWifiSharp } from "react-icons/io5";
 import { CiNoWaitingSign } from "react-icons/ci";
 import ProductForm from "./ProductForm";
@@ -25,46 +25,68 @@ const ProductTable = ({ data }) => {
 
     setProducts(data.products); // Update products based on search
   };
+  const fileInputRef = useRef(null);
 
-
-  // Save the edited stock value for a specific product
-  const saveStock = () => {
-    if (editingProduct) {
-      setProducts((prevProducts) =>
-        prevProducts.map((product) =>
-          product.id === editingProduct.id
-            ? { ...product, stockQuantity: parseInt(editStockValue) || 0 }
-            : product
-        )
-      );
-      setEditingProduct(null); // Exit edit mode
-      setEditStockValue(""); // Reset editing value
-    }
+  const handleButtonClick = () => {
+    // Trigger the file input when the button is clicked
+    fileInputRef.current.click();
   };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    console.log(file); // You can handle the file further here
+  };
+
   return (
     <div className="bg-gray-100  flex flex-col overflow-hidden">
       {/* Product Table */}
       <div className="flex-1 overflow-auto">
         <div className="p-6 bg-gray-100">
           <div className="max-w-6xl  mx-auto relative  ">
-            <h1 className="text-2xl font-bold mb-4">Product Table</h1>
+            <h1 className="text-2xl font-bold  border-b border-black">Product Table <span className="text-lg font-medium">
+              (Total Products: {products.length})
+            </span></h1>
+
 
             {/* Search Bar and Product Count */}
-            <div className="mb-4 flex justify-between items-center">
+            <div className=" flex justify-between items-center">
               <input
                 type="text"
                 placeholder="Search by Product Name"
-                className="w-3/4 border border-gray-300 rounded px-4 py-2"
+                className="w-1/2 border border-gray-300 rounded px-4 py-2"
                 value={searchTerm}
                 onChange={(e) => searchHandler(e.target.value)}
               />
-              <p className="text-lg font-medium">
-                Total Products: {products.length}
-              </p>
+              {/* Add Product Button */}
+              <div className="py-4  flex justify-start">
+                <button
+                  className="px-6 py-2 bg-customPink text-white rounded hover:bg-customBlue"
+                  onClick={() => setShowForm(!showForm)}
+                >
+                  Add Product
+                </button>
+                {/* upload Excel file CSV button  */}
+                <div>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }} // Hide the file input element
+                    accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" // Accept Excel and CSV files
+                  />
+                  <button
+                    className="px-6 py-2 ml-4 bg-green-600 text-white rounded hover:bg-green-800"
+                    onClick={handleButtonClick}
+                  >
+                    Upload Excel File
+                  </button>
+                </div>
+              </div>
+
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto max-h-[60vh] relative">
+            <div className="overflow-x-auto max-h-[70vh] relative">
               <table className="table-auto w-full border-collapse border border-gray-300">
                 <thead className="bg-gray-200 sticky top-0 z-50">
                   <tr>
@@ -106,7 +128,7 @@ const ProductTable = ({ data }) => {
                         {product.isFeatured ? (
                           <div className="relative flex justify-center items-center">
                             {/* Button with Blinking Dot */}
-                            <span className="relative flex items-center justify-center px-4 py-2 bg-green-600 text-white text-lg font-semibold rounded-md shadow-lg">
+                            <span className="relative flex items-center justify-center px-2 py-1 bg-green-600 text-white text-lg font-semibold rounded-md shadow-lg">
                               Live
                               <IoWifiSharp className="w-5 h-5 ml-2" />
                               {/* Blinking Dot in Top-Right Corner */}
@@ -119,7 +141,7 @@ const ProductTable = ({ data }) => {
                         ) : (
                           <div className="relative flex justify-center items-center">
                             {/* Button with Blinking Dot */}
-                            <span className="relative flex items-center justify-center px-4 py-2 bg-red-600 text-white text-lg font-semibold rounded-md shadow-lg">
+                            <span className="relative flex items-center justify-center px-2 py-1 bg-red-600 text-white text-lg font-semibold rounded-md shadow-lg">
                               Hold
                               <CiNoWaitingSign className="w-5 h-5 ml-2" />
                               {/* Blinking Dot in Top-Right Corner */}
@@ -329,19 +351,13 @@ const ProductTable = ({ data }) => {
                 </tbody>
               </table>
             </div>
+
           </div>
+
         </div>
       </div>
 
-      {/* Add Product Button */}
-      <div className="p-4 border-t-2 border-red-500 flex justify-start">
-        <button
-          className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          onClick={() => setShowForm(!showForm)}
-        >
-          Add Product
-        </button>
-      </div>
+
 
       {showForm && <ProductForm brandList={data.brands} catList={data.categories} vendorList={data.vendors} />}
     </div>
