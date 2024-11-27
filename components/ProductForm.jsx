@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { AiOutlinePlus } from "react-icons/ai"; // Importing the plus icon
+import { IoArrowBack } from "react-icons/io5";
 
-function ProductForm({ brandList, catList, vendorList }) {
+function ProductForm({ brandList, catList, vendorList, onBack }) {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   // brand selection
@@ -87,8 +88,19 @@ function ProductForm({ brandList, catList, vendorList }) {
   }, [newProduct.prod_desc]);
 
   const handleUploadClick = () => {
+    // Check if all required fields have values
+    if (!newProduct.prod_name || !newProduct.category || !newProduct.prod_id || 
+        !newProduct.brand_name || !newProduct.vendor_name || !newProduct.prod_value ||
+        newProduct.prod_images.length === 0 || newProduct.prod_highlight.length === 0 ||
+        !newProduct.prod_desc) {
+      alert("Please fill all required fields before uploading the product.");
+      return;
+    }
+    
+    // If all fields are filled, open the upload confirmation modal
     setIsUploadConfirmModalOpen(true);
   };
+  
 
   const handleCloseModal = () => {
     setIsUploadConfirmModalOpen(false);
@@ -239,7 +251,15 @@ function ProductForm({ brandList, catList, vendorList }) {
   return (
     <div className="p-6 bg-gray-100 min-h-screen  ">
       <div className="max-w-7xl mx-auto bg-white p-8 rounded-md shadow  overflow-scroll">
-        <h2 className="text-2xl font-semibold mb-6">Add Products</h2>
+        <div className="flex justify-between"><h2 className="text-2xl font-semibold mb-6">Add New Product</h2>
+          {/* Go Back Button with Icon */}
+          <button
+            className="mb-6 flex items-center px-4 py-2 bg-customPink text-white rounded hover:bg-customBlue focus:outline-none"
+            onClick={onBack}
+          >
+            <IoArrowBack className="mr-2 text-xl transition-all duration-300 ease-in-out transform hover:text-pink-500 hover:translate-x-1" />
+            Back to Product Table
+          </button></div>
         <form>
           <div className="grid grid-cols-2 gap-6">
             {/* Left Section */}
@@ -255,6 +275,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                   value={newProduct.prod_name}
                   onChange={inputHandler}
                   className="w-full border border-gray-300 rounded px-4 py-2"
+                  required
                 />
                 <p className="text-sm text-gray-400">
                   Product Name should not exceed 30 characters
@@ -338,6 +359,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                     className="w-full border border-gray-300 rounded px-4 py-2"
                     value={newProduct.brand_name} // Bind the selected value
                     onChange={inputHandler} // Update the selected brand
+                    required
                   >
                     <option value="">Select</option>
                     {brands.map((brand, index) => (
@@ -386,7 +408,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                 )}
               </div>
 
-              {/* Brand Name */}
+              {/* Vendor Name */}
               <div className="mb-4">
                 <label className="block text-gray-600 mb-2">Vendor Name</label>
                 <div className="flex items-center">
@@ -395,6 +417,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                     className="w-full border border-gray-300 rounded px-4 py-2"
                     value={newProduct.vendor_name} // Bind the selected value
                     onChange={inputHandler} // Update the selected brand
+                    required
                   >
                     <option value="">Select</option>
                     {vendorList.map((vendor, index) => (
@@ -442,6 +465,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                           checked={!!newProduct.key_features[option]}
                           onChange={(e) => featuresHandler(option, e.target.checked)}
                           className="cursor-pointer"
+                          required
                         />
                         <label
                           htmlFor={`feature-${index}`}
@@ -470,6 +494,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                   className={`w-full border rounded px-4 py-2 ${isDisabled ? "border-red-500" : "border-gray-300"
                     }`}
                   disabled={isDisabled}
+                  required
                 />
                 <p className="text-sm text-gray-400">
                   {isDisabled
@@ -483,8 +508,8 @@ function ProductForm({ brandList, catList, vendorList }) {
                 <textarea
                   placeholder="Describe how to use this product"
                   name="how_to_use"
-                  value={newProduct.how_to_use}
-                  onChange={inputHandler}
+                  // value={newProduct.how_to_use}
+                  // onChange={inputHandler}
                   className="w-full border rounded px-4 py-2 border-gray-300"
                 />
               </div>
@@ -509,6 +534,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                                 type="button"
                                 onClick={() => handleRemovePair(index)}
                                 className="text-red-500 hover:underline"
+                                required
                               >
                                 Remove
                               </button>
@@ -527,6 +553,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                             setPair({ ...pair, key: e.target.value })
                           }
                           className="w-full border border-gray-300 rounded px-4 py-2"
+                          required
                         />
                       </div>
                       {/* Value Text Area */}
@@ -541,6 +568,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                             setPair({ ...pair, value: e.target.value })
                           }
                           className="w-full border border-gray-300 rounded px-4 py-2"
+                          required
                         />
                       </div>
                     </div>
@@ -584,6 +612,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                         onChange={({ target }) => setPHL(target.value)}
                         className="w-full border border-gray-300 rounded px-4 py-2"
                         rows="2"
+                        required
                       />
                     </div>
 
@@ -623,6 +652,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                         ["e", "E", "+", "-"].includes(e.key) &&
                         e.preventDefault()
                       } // Disable non-numeric input
+                      required
                     />
                   </div>
                   {/* Dealer Price */}
@@ -645,6 +675,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                         ["e", "E", "+", "-"].includes(e.key) &&
                         e.preventDefault()
                       } // Disable non-numeric input
+                      required
                     />
                   </div>
                 </div>
@@ -715,6 +746,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                   id="imageUploadInput"
                   className="hidden"
                   onChange={handleImageUpload}
+                  required
                 />
 
                 {newProduct.prod_images.length === 0 ? (
@@ -802,6 +834,7 @@ function ProductForm({ brandList, catList, vendorList }) {
                   onKeyDown={(e) =>
                     ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()
                   } // Prevent invalid characters
+                  required
                 />
               </div>
             </div>

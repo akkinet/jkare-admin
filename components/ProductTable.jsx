@@ -36,19 +36,25 @@ const ProductTable = ({ data }) => {
     const file = event.target.files[0];
     console.log(file); // You can handle the file further here
   };
+    const toggleForm = () => {
+    setShowForm(!showForm);
+  };
 
   return (
-    <div className="bg-gray-100  flex flex-col overflow-hidden">
-      {/* Product Table */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-6 bg-gray-100">
-          <div className="max-w-6xl  mx-auto relative  ">
-            <h1 className="text-2xl font-bold  border-b border-black">Product Table <span className="text-lg font-medium">
-              (Total Products: {products.length})
-            </span></h1>
-
-
-            {/* Search Bar and Product Count */}
+     <div className="bg-gray-100 flex flex-col overflow-hidden">
+      {showForm ? (
+        // Show the product form when showForm is true
+        <ProductForm brandList={data.brands} catList={data.categories} vendorList={data.vendors} onBack={toggleForm}  // This function should toggle the visibility state
+/>
+      ) : (
+        // Show the product table when showForm is false
+        <div className="flex-1 overflow-auto">
+          <div className="p-6 bg-gray-100">
+            <div className="max-w-6xl mx-auto relative">
+              <h1 className="text-2xl font-bold border-b border-black">
+                Product Table <span className="text-lg font-medium">(Total Products: {products.length})</span>
+              </h1>
+                {/* Search Bar and Product Count */}
             <div className=" flex justify-between items-center">
               <input
                 type="text"
@@ -63,7 +69,7 @@ const ProductTable = ({ data }) => {
                   className="px-6 py-2 bg-customPink text-white rounded hover:bg-customBlue"
                   onClick={() => setShowForm(!showForm)}
                 >
-                  Add Product
+                  Add New Product
                 </button>
                 {/* upload Excel file CSV button  */}
                 <div>
@@ -78,17 +84,17 @@ const ProductTable = ({ data }) => {
                     className="px-6 py-2 ml-4 bg-green-600 text-white rounded hover:bg-green-800"
                     onClick={handleButtonClick}
                   >
-                    Upload Excel File
+                    Upload Excel File / .csv
                   </button>
                 </div>
               </div>
 
             </div>
 
-            {/* Table */}
+             {/* Table */}
             <div className="overflow-x-auto max-h-[70vh] relative">
               <table className="table-auto w-full border-collapse border border-gray-300">
-                <thead className="bg-gray-200 sticky top-0 z-50">
+                <thead className="bg-gray-200 sticky top-0 z-40">
                   <tr>
                     <th className="border border-gray-300 px-4 py-2">S.No</th>
                     <th className="border border-gray-300 px-4">
@@ -123,7 +129,6 @@ const ProductTable = ({ data }) => {
                       </td>
 
                       {/* Is Featured */}
-
                       <td className="border border-gray-300 px-2 py-2">
                         {product.isFeatured ? (
                           <div className="relative flex justify-center items-center">
@@ -153,8 +158,6 @@ const ProductTable = ({ data }) => {
                           </div>
                         )}
                       </td>
-
-
 
                       {/* Product Name */}
                       <td className="border border-gray-300 px-4 py-2">
@@ -351,15 +354,10 @@ const ProductTable = ({ data }) => {
                 </tbody>
               </table>
             </div>
-
+            </div>
           </div>
-
         </div>
-      </div>
-
-
-
-      {showForm && <ProductForm brandList={data.brands} catList={data.categories} vendorList={data.vendors} />}
+      )}
     </div>
   );
 };
