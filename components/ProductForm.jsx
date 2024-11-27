@@ -236,7 +236,7 @@ function ProductForm({ brandList, catList, vendorList }) {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen  ">
-      <div className="max-w-7xl mx-auto bg-white p-8 rounded-md shadow max-h-[80vh] overflow-scroll">
+      <div className="max-w-7xl mx-auto bg-white p-8 rounded-md shadow  overflow-scroll">
         <h2 className="text-2xl font-semibold mb-6">Add Products</h2>
         <form>
           <div className="grid grid-cols-2 gap-6">
@@ -412,55 +412,52 @@ function ProductForm({ brandList, catList, vendorList }) {
               {/* Key features */}
               <div className="mb-4">
                 <label className="block text-gray-600 mb-2">Key Features</label>
-                <div
-                  className="w-full border border-gray-300 rounded px-4 py-2 relative"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                >
-                  <div className="flex flex-wrap gap-2 ">
+                <div className="w-full border border-gray-300 rounded px-4 py-2">
+                  {/* List of Selected Features */}
+                  <div className="flex flex-wrap gap-2 mb-2">
                     {Object.entries(newProduct.key_features)
                       .filter((feature) => feature[1])
                       .map((f) => f[0])
-                      .map((option, index) => (
+                      .map((selectedFeature, index) => (
                         <div
                           key={index}
                           className="bg-customBlue text-white px-2 py-4 rounded flex items-center gap-2"
                         >
-                          <span>{option}</span>
+                          <span>{selectedFeature}</span>
                           <button
                             type="button"
                             className="text-white bg-customBlue rounded-full w-5 h-5 flex items-center justify-center"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              featuresHandler(option, false);
-                            }}
+                            onClick={() => featuresHandler(selectedFeature, false)}
                           >
                             &times;
                           </button>
                         </div>
                       ))}
                   </div>
-                  {/* <input
-                    type="text"
-                    placeholder="Select features"
-                    readOnly
-                    className="w-full bg-transparent focus:outline-none"
-                  /> */}
-                </div>
 
-                {isDropdownOpen && (
-                  <div className="relative z-10 bg-white border border-gray-300 rounded w-[35%] mt-2 max-h-40 overflow-auto">
+                  {/* Feature Checkboxes */}
+                  <div className="flex flex-wrap gap-4">
                     {options.map((option, index) => (
-                      <div
-                        key={index}
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => featuresHandler(option, true)}
-                      >
-                        {option}
+                      <div key={index} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id={`feature-${index}`}
+                          checked={!!newProduct.key_features[option]}
+                          onChange={(e) => featuresHandler(option, e.target.checked)}
+                          className="cursor-pointer"
+                        />
+                        <label
+                          htmlFor={`feature-${index}`}
+                          className="cursor-pointer text-gray-600"
+                        >
+                          {option}
+                        </label>
                       </div>
                     ))}
                   </div>
-                )}
+                </div>
               </div>
+
 
               {/* Prod Description */}
               <div className="mb-4">
@@ -473,9 +470,8 @@ function ProductForm({ brandList, catList, vendorList }) {
                   maxLength="3000" // Allows more characters but limits word count
                   value={newProduct.prod_desc}
                   onChange={inputHandler}
-                  className={`w-full border rounded px-4 py-2 ${
-                    isDisabled ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full border rounded px-4 py-2 ${isDisabled ? "border-red-500" : "border-gray-300"
+                    }`}
                   disabled={isDisabled}
                 />
                 <p className="text-sm text-gray-400">
@@ -484,6 +480,18 @@ function ProductForm({ brandList, catList, vendorList }) {
                     : `Words: ${wordCount}/300`}
                 </p>
               </div>
+              {/* How to use  */}
+              <div className="mb-4">
+                <label className="block text-gray-600 mb-2">How to Use</label>
+                <textarea
+                  placeholder="Describe how to use this product"
+                  name="how_to_use"
+                  value={newProduct.how_to_use}
+                  onChange={inputHandler}
+                  className="w-full border rounded px-4 py-2 border-gray-300"
+                />
+              </div>
+
 
               {/* Product Detailed Description */}
               <div className="mb-4">
