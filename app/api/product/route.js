@@ -29,13 +29,28 @@ export async function POST(req) {
         `https://s3.${process.env.AWS_REGION}.amazonaws.com/${process.env.AWS_S3_BUCKET}/${newFileName}`
       );
     }
-
-    const params = {
+    
+    const params = [];
+    params.push({
       TableName: "RealProducts",
       Item: {...body, prod_images: uploadedImages},
-    };
-    const command = new PutCommand(params);
-    await ddbDocClient.send(command);
+    });
+
+    if(body.category.startsWith("#")){
+      params.push({
+        TableName: "RealCategories",
+        Item: {
+          name: body.category.slice(1),
+          image: uploadedImages[0]
+        }
+      });
+    }
+
+    for(const param of params){
+      const command = new PutCommand(param);
+      await ddbDocClient.send(command);
+    }
+
     return NextResponse.json({ msg: "Product inserted successfully" }, { status: 201 });
   } catch (error) {
     console.error("Request handling error:", error);

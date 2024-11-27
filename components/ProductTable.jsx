@@ -96,9 +96,9 @@ const ProductTable = ({ data }) => {
               <table className="table-auto w-full border-collapse border border-gray-300">
                 <thead className="bg-gray-200 sticky top-0 z-40">
                   <tr>
-                    <th className="border border-gray-300 px-4 py-2">S.No</th>
-                    <th className="border border-gray-300 px-4">
-                      Is Featured
+                    <th className="border border-gray-300 px-4 py-2">S No</th>
+                    <th className="border border-gray-300 px-4 py-2">
+                      Status
                     </th>
                     <th className="border border-gray-300 px-4">Name</th>
                     {/* <th className="border border-gray-300 px-4 py-2">Image</th> */}
