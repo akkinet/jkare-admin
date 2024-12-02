@@ -3,10 +3,9 @@ import React from 'react';
 
 const Customers = () => {
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Customers</h1>
-      <p>This is the Customers component.</p>
-    </div>
+    <h1 className="text-center text-4xl font-bold text-customBlue mb-8">
+    Customer Management
+  </h1>
   );
 };
 

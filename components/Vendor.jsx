@@ -89,6 +89,9 @@ function Vendor({list}) {
 
   return (
     <div className="p-4">
+         <h1 className="text-center text-4xl font-bold text-customBlue mb-8">
+        Vendor Management
+      </h1>
       <table className="min-w-full bg-white border border-gray-300">
         <thead>
           <tr className="bg-pink-600 text-white">

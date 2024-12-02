@@ -61,7 +61,7 @@ const ProductTable = ({ data }) => {
   };
 
   return (
-    <div className="bg-gray-100 flex flex-col overflow-hidden">
+    <>
       {showForm ? (
         // Show the product form when showForm is true
         <ProductForm
@@ -72,9 +72,12 @@ const ProductTable = ({ data }) => {
         />
       ) : (
         // Show the product table when showForm is false
-        <div className="flex-1 overflow-auto">
-          <div className="p-6 bg-gray-100">
+        <div className="border-2 border-green-500">
+          <div className="p-6 bg-gray-100 border-2 border-red-500">
             <div className="max-w-6xl mx-auto relative">
+              <h1 className="text-center text-4xl font-bold text-customBlue ">
+                All  Products
+              </h1>
               <h1 className="text-2xl font-bold border-b border-black">
                 Product Table{" "}
                 <span className="text-lg font-medium">
@@ -118,7 +121,7 @@ const ProductTable = ({ data }) => {
               </div>
 
               {/* Table */}
-              <div className="overflow-x-auto max-h-[70vh] relative">
+              <div className="overflow-x-auto max-h-[30vw] relative">
                 <table className="table-auto w-full border-collapse border border-gray-300">
                   <thead className="bg-gray-200 sticky top-0 z-40">
                     <tr>
@@ -154,7 +157,7 @@ const ProductTable = ({ data }) => {
                         {/* Is Featured */}
                         <td className="border border-gray-300 px-2 py-2">
                           {product.isFeatured ? (
-                            <div className="relative flex justify-center items-center cursor-pointer">
+                            <div className="relative flex justify-center items-center cursor-pointer ">
                               {/* Button with Blinking Dot */}
                               <span className="relative flex items-center justify-center px-2 py-1 bg-green-600 text-white text-lg font-semibold rounded-md shadow-lg">
                                 Live
@@ -170,7 +173,7 @@ const ProductTable = ({ data }) => {
                             <div className="relative flex justify-center items-center cursor-pointer">
                               {/* Button with Blinking Dot */}
                               <span className="relative flex items-center justify-center px-2 py-1 bg-red-600 text-white text-lg font-semibold rounded-md shadow-lg">
-                                Hold
+                                Suspend
                                 <CiNoWaitingSign className="w-5 h-5 ml-2" />
                                 {/* Blinking Dot in Top-Right Corner */}
                                 <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
@@ -386,7 +389,7 @@ const ProductTable = ({ data }) => {
           )}
         </div>
       )}
-    </div>
+    </>
   );
 };
 
