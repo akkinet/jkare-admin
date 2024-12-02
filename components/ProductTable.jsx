@@ -39,11 +39,23 @@ const ProductTable = ({ data }) => {
     const file = event.target.files[0];
     console.log(file); // You can handle the file further here
   };
-  const toggleForm = () => {
+  const toggleForm = async () => {
     setShowForm(!showForm);
+    const res = await fetch(`/api/product`);
+    const data = await res.json();
+
+    setProducts(data.products);
   };
 
-  const stockHandler = () => {
+  const stockHandler = async () => {
+    const body = { ...editStockValue };
+    delete body.prodID;
+    await fetch(`/api/product/${editStockValue.prodID}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        stockQuantity: body.quantity,
+      }),
+    });
     // Save the updated stock value for this product
     setProducts((prevProducts) =>
       prevProducts.map((p) =>
@@ -59,6 +71,23 @@ const ProductTable = ({ data }) => {
       quantity: 0,
     }); // Reset editing value
   };
+
+  const statHandler = async (id, bool) => {
+    await fetch(`/api/product/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        isFeatured: !bool,
+      }),
+    });
+
+    setProducts((prevProducts) =>
+      prevProducts.map((p) =>
+        p.prod_id == id
+          ? { ...p, isFeatured: !bool }
+          : p
+      )
+    );
+  }
 
   return (
     <div className="bg-gray-100 flex flex-col overflow-hidden">
@@ -151,9 +180,9 @@ const ProductTable = ({ data }) => {
                         </td>
 
                         {/* Is Featured */}
-                        <td className="border border-gray-300 px-2 py-2">
+                        <td className="border border-gray-300 px-2 py-2" onClick={() => statHandler(product.prod_id, product.isFeatured)}>
                           {product.isFeatured ? (
-                            <div className="relative flex justify-center items-center">
+                            <div className="relative flex justify-center items-center hover:cursor-pointer">
                               {/* Button with Blinking Dot */}
                               <span className="relative flex items-center justify-center px-2 py-1 bg-green-600 text-white text-lg font-semibold rounded-md shadow-lg">
                                 Live
@@ -166,10 +195,10 @@ const ProductTable = ({ data }) => {
                               </span>
                             </div>
                           ) : (
-                            <div className="relative flex justify-center items-center">
+                            <div className="relative flex justify-center items-center hover:cursor-pointer">
                               {/* Button with Blinking Dot */}
                               <span className="relative flex items-center justify-center px-2 py-1 bg-red-600 text-white text-lg font-semibold rounded-md shadow-lg">
-                                Hold
+                                Suspend
                                 <CiNoWaitingSign className="w-5 h-5 ml-2" />
                                 {/* Blinking Dot in Top-Right Corner */}
                                 <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
