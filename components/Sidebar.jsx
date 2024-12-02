@@ -9,7 +9,8 @@ import {
   FaUserCog,
   FaCog,
   FaUserShield,
-  FaPrescription
+  FaPrescription,
+  FaShoppingCart 
 } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -87,6 +88,26 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
+              href="/dashboard/orders"
+              className={`w-full flex items-center p-2 rounded group ${
+                activeComponent === "orders"
+                  ? "bg-customPink text-white"
+                  : "text-customDarkGray"
+              } hover:bg-customPink hover:text-white`}
+              onClick={() => handleSetActive("orders")}
+            >
+              <FaShoppingCart
+                className={`text-xl ${
+                  activeComponent === "orders"
+                    ? "text-white"
+                    : "text-customBlue"
+                } group-hover:text-white`}
+              />
+              <span className="hidden md:inline ml-3">Orders</span>
+            </Link>
+          </li>
+          <li>
+            <Link
               href="/dashboard/prescription"
               className={`w-full flex items-center p-2 rounded group ${
                 activeComponent === "prescription"
@@ -105,6 +126,7 @@ const Sidebar = () => {
               <span className="hidden md:inline ml-3">Prescription</span>
             </Link>
           </li>
+          
           <li>
             <Link
               href="/dashboard/billing"

@@ -126,6 +126,7 @@ const ProductTable = ({ data }) => {
                       <th className="border border-gray-300 px-4 py-2">
                         Status
                       </th>
+
                       <th className="border border-gray-300 px-4">Name</th>
                       {/* <th className="border border-gray-300 px-4 py-2">Image</th> */}
                       <th className="border border-gray-300 px-4">Category</th>
@@ -153,7 +154,7 @@ const ProductTable = ({ data }) => {
                         {/* Is Featured */}
                         <td className="border border-gray-300 px-2 py-2">
                           {product.isFeatured ? (
-                            <div className="relative flex justify-center items-center">
+                            <div className="relative flex justify-center items-center cursor-pointer">
                               {/* Button with Blinking Dot */}
                               <span className="relative flex items-center justify-center px-2 py-1 bg-green-600 text-white text-lg font-semibold rounded-md shadow-lg">
                                 Live
@@ -166,7 +167,7 @@ const ProductTable = ({ data }) => {
                               </span>
                             </div>
                           ) : (
-                            <div className="relative flex justify-center items-center">
+                            <div className="relative flex justify-center items-center cursor-pointer">
                               {/* Button with Blinking Dot */}
                               <span className="relative flex items-center justify-center px-2 py-1 bg-red-600 text-white text-lg font-semibold rounded-md shadow-lg">
                                 Hold
@@ -180,7 +181,6 @@ const ProductTable = ({ data }) => {
                             </div>
                           )}
                         </td>
-
                         {/* Product Name */}
                         <td className="border border-gray-300 px-4 py-2">
                           <div className="relative group">
