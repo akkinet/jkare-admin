@@ -15,6 +15,14 @@ const ProductTable = ({ data }) => {
     quantity: 0,
   }); // Track current editable stock value
 
+  const [isEditingPrice, setIsEditingPrice] = useState(false);
+  const [editPriceValue, setEditPriceValue] = useState({
+    prodID: "",
+    name: "",
+    price: 0,
+  });
+
+
   // Handler for searching products
   const searchHandler = async (query) => {
     const term = isNaN(query) ? query : "";
@@ -71,6 +79,32 @@ const ProductTable = ({ data }) => {
       quantity: 0,
     }); // Reset editing value
   };
+
+  const priceHandler = async () => {
+    const body = { ...editPriceValue };
+    delete body.prodID;
+    await fetch(`/api/product/${editPriceValue.prodID}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        prod_value: body.price,
+      }),
+    });
+    // Save the updated price for this product
+    setProducts((prevProducts) =>
+      prevProducts.map((p) =>
+        p.prod_id == editPriceValue.prodID
+          ? { ...p, prod_value: editPriceValue.price }
+          : p
+      )
+    );
+    setIsEditingPrice(false);
+    setEditPriceValue({
+      prodID: "",
+      name: "",
+      price: 0,
+    });
+  };
+
 
   const statHandler = async (id, bool) => {
     await fetch(`/api/product/${id}`, {
@@ -168,7 +202,8 @@ const ProductTable = ({ data }) => {
                       <th className="border border-gray-300 px-4">Vendor</th>
                       <th className="border border-gray-300 px-4">Brand</th>
                       <th className="border border-gray-300 px-4">Stock</th>
-                      <th className="border border-gray-300 px-4">Price</th>
+                      <th className="border border-gray-300 px-4">SellingPrice</th>
+                      <th className="border border-gray-300 px-4">Discount</th>
                       <th className="border border-gray-300 px-4">
                         Highlights
                       </th>
@@ -184,7 +219,10 @@ const ProductTable = ({ data }) => {
                         </td>
 
                         {/* Is Featured */}
-                        <td className="border border-gray-300 px-2 py-2" onClick={() => statHandler(product.prod_id, product.isFeatured)}>
+                        <td
+                          className="border border-gray-300 px-2 py-2 group relative"
+                          onClick={() => statHandler(product.prod_id, product.isFeatured)}
+                        >
                           {product.isFeatured ? (
                             <div className="relative flex justify-center items-center hover:cursor-pointer">
                               {/* Button with Blinking Dot */}
@@ -197,6 +235,11 @@ const ProductTable = ({ data }) => {
                                   <span className="relative inline-flex rounded-full h-3 w-3 bg-green-600"></span>
                                 </span>
                               </span>
+
+                              {/* Tooltip on Hover */}
+                              <div className="absolute left-full  top-1/2 mt-2 z-50 w-64 bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded shadow-lg hidden group-hover:block">
+                                Clicking on this button will allow you to enable or disable your product.
+                              </div>
                             </div>
                           ) : (
                             <div className="relative flex justify-center items-center hover:cursor-pointer">
@@ -210,9 +253,16 @@ const ProductTable = ({ data }) => {
                                   <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
                                 </span>
                               </span>
+
+                              {/* Tooltip on Hover */}
+                              <div className="absolute left-full  top-1/2 mt-2 z-50 w-64 bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded shadow-lg hidden group-hover:block">
+                                Clicking on this button will allow you to enable or disable your product.
+                              </div>
                             </div>
                           )}
                         </td>
+
+
                         {/* Product Name */}
                         <td className="border border-gray-300 px-4 py-2">
                           <div className="relative group">
@@ -304,9 +354,34 @@ const ProductTable = ({ data }) => {
                           </div>
                         </td>
                         {/* Price */}
-                        <td className="border border-gray-300 px-4 py-2">
-                          ${product.prod_value}
+                        <td className="border border-gray-300 px-4 py-2 relative group">
+                          <div className="flex items-center justify-between">
+                            <span>${product.prod_value}</span>
+                            {/* Pencil Icon */}
+                            <button
+                              className="text-gray-500"
+                              onClick={() => {
+                                setIsEditingPrice(true);
+                                setEditPriceValue({
+                                  price: product.prod_value,
+                                  name: product.prod_name,
+                                  prodID: product.prod_id,
+                                });
+                              }}
+                            >
+                              ✏️
+                            </button>
+                          </div>
                         </td>
+
+                          {/* Discount */}
+                          <td className="border border-gray-300 px-4 py-2 relative group">
+                          <div className="flex items-center justify-between">
+                            <span>{product.discount}%</span>
+                         
+                          </div>
+                        </td>
+
 
                         {/* Highlights with Hover */}
                         <td className="border border-gray-300 px-4 py-2 relative group">
@@ -416,6 +491,58 @@ const ProductTable = ({ data }) => {
               </div>
             </div>
           )}
+          {isEditingPrice && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+              <div className="bg-white w-80 p-6 rounded-lg shadow-lg transform transition-all duration-300 scale-100">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Price Update: {editPriceValue.name}
+                </h3>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={editPriceValue.price === 0 ? "" : editPriceValue.price}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter new price"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^\d*\.?\d{0,2}$/.test(value)) {
+                      // Allow numeric input with up to two decimal places
+                      setEditPriceValue({
+                        ...editPriceValue,
+                        price: value === "" ? 0 : parseFloat(value),
+                      });
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      priceHandler(); // Call the save handler
+                    }
+                    ["e", "E", "+", "-"].includes(e.key) && e.preventDefault();
+                  }} // Prevent invalid characters
+                />
+                <div className="flex justify-end mt-4 space-x-3">
+                  <button
+                    className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 text-sm font-medium text-gray-700 transition-colors duration-200"
+                    onClick={() => {
+                      setIsEditingPrice(false);
+                      setEditPriceValue({ prodID: "", name: "", price: 0 });
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium transition-transform duration-200 transform hover:scale-105"
+                    onClick={priceHandler}
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       )}
     </>
