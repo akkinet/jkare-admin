@@ -168,8 +168,8 @@ const ProductTable = ({ data }) => {
         />
       ) : (
         // Show the product table when showForm is false
-        <div className="border-2 border-green-500">
-          <div className="p-6 bg-gray-100 border-2 border-red-500">
+        <div className="">
+          <div className="p-6 bg-gray-100 ">
             <div className="max-w-6xl mx-auto relative">
               <h1 className="text-center text-4xl font-bold text-customBlue ">
                 All  Products
@@ -278,7 +278,7 @@ const ProductTable = ({ data }) => {
                             <div className="relative flex justify-center items-center hover:cursor-pointer">
                               {/* Button with Blinking Dot */}
                               <span className="relative flex items-center justify-center px-2 py-1 bg-red-600 text-white text-lg font-semibold rounded-md shadow-lg">
-                                Suspend
+                                Suspended
                                 <CiNoWaitingSign className="w-5 h-5 ml-2" />
                                 {/* Blinking Dot in Top-Right Corner */}
                                 <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
