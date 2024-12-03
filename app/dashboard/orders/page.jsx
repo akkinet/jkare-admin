@@ -73,7 +73,7 @@ const Orders = () => {
               <th className="px-6 py-3 text-center text-sm font-medium">Order Date</th>
               <th className="px-6 py-3 text-center text-sm font-medium">Order Status</th>
               <th className="px-6 py-3 text-center text-sm font-medium">Prescription Status</th>
-              <th className="px-6 py-3 text-center text-sm font-medium">Action</th>
+              <th className="px-6 py-3 text-center text-sm font-medium">Order Details</th>
             </tr>
           </thead>
           <tbody>
@@ -108,7 +108,7 @@ const Orders = () => {
                     className="bg-customPink text-white px-4 py-2 rounded hover:bg-customBlue"
                     onClick={() => openModal(order)}
                   >
-                    View Details
+                    View 
                   </button>
                 </td>
               </tr>
