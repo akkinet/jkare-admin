@@ -18,6 +18,36 @@ function Vendor({list}) {
     imageUrl: "",
   });
 
+  const updateVendor = async (updatedVendor) => {
+  try {
+    const response = await fetch(`${process.env.API_URL}/vendors/${updatedVendor.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedVendor),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update vendor: ${response.statusText}`);
+    }
+
+    const updatedData = await response.json();
+
+    // Update the local state with the response data
+    setVendors((prevVendors) =>
+      prevVendors.map((vendor) =>
+        vendor.id === updatedVendor.id ? updatedData : vendor
+      )
+    );
+    alert("Vendor updated successfully!");
+  } catch (error) {
+    console.error("Error updating vendor:", error);
+    alert("Failed to update vendor.");
+  }
+};
+
+
   const handleDropdown = (index) => {
     setShowDropdown(showDropdown === index ? null : index);
   };
@@ -48,14 +78,13 @@ function Vendor({list}) {
       return;
     }
 
-    if (editingIndex !== null) {
-      const updatedVendors = [...vendors];
-      updatedVendors[editingIndex] = newVendor;
-      setVendors(updatedVendors);
-    } else {
-      const newVendorWithId = { ...newVendor, id: generateVendorId() };
-      setVendors([...vendors, newVendorWithId]);
-    }
+  if (editingIndex !== null) {
+  updateVendor(newVendor); // Call the update function to sync changes to the server
+} else {
+  const newVendorWithId = { ...newVendor, id: generateVendorId() };
+  setVendors([...vendors, newVendorWithId]);
+}
+
     setShowModal(false);
     resetForm();
   };
@@ -89,6 +118,9 @@ function Vendor({list}) {
 
   return (
     <div className="p-4">
+         <h1 className="text-center text-4xl font-bold text-customBlue mb-8">
+        Vendor Management
+      </h1>
       <table className="min-w-full bg-white border border-gray-300">
         <thead>
           <tr className="bg-pink-600 text-white">

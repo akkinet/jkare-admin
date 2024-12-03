@@ -219,7 +219,7 @@ export default function Prescription({ initialOrders, error }) {
                             className="bg-pink-500 text-white px-3 py-1 rounded"
                             onClick={() => handleViewMore(order)}
                           >
-                            Review Order
+                            Review
                           </button>
                         </td>
                         {status === "Pending" && (
