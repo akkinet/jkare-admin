@@ -5,7 +5,7 @@ import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 export const GET = async req => {
   try{
     const params = {
-      TableName: "Vendors", 
+      TableName: "VendorAlt", 
       // Limit: 10,                
     };
     const result = await ddbDocClient.send(new ScanCommand(params));
