@@ -1,8 +1,8 @@
-"use client"
+"use client";
 import { useState } from "react";
 import { FaEllipsisV, FaEdit, FaTrash } from "react-icons/fa";
 
-function Vendor({list}) {
+function Vendor({ list }) {
   const [vendors, setVendors] = useState(list);
   const [showDropdown, setShowDropdown] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -19,34 +19,36 @@ function Vendor({list}) {
   });
 
   const updateVendor = async (updatedVendor) => {
-  try {
-    const response = await fetch(`${process.env.API_URL}/vendors/${updatedVendor.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedVendor),
-    });
+    try {
+      const response = await fetch(
+        `${process.env.API_URL}/vendors/${updatedVendor.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedVendor),
+        }
+      );
 
-    if (!response.ok) {
-      throw new Error(`Failed to update vendor: ${response.statusText}`);
+      if (!response.ok) {
+        throw new Error(`Failed to update vendor: ${response.statusText}`);
+      }
+
+      const updatedData = await response.json();
+
+      // Update the local state with the response data
+      setVendors((prevVendors) =>
+        prevVendors.map((vendor) =>
+          vendor.id === updatedVendor.id ? updatedData : vendor
+        )
+      );
+      alert("Vendor updated successfully!");
+    } catch (error) {
+      console.error("Error updating vendor:", error);
+      alert("Failed to update vendor.");
     }
-
-    const updatedData = await response.json();
-
-    // Update the local state with the response data
-    setVendors((prevVendors) =>
-      prevVendors.map((vendor) =>
-        vendor.id === updatedVendor.id ? updatedData : vendor
-      )
-    );
-    alert("Vendor updated successfully!");
-  } catch (error) {
-    console.error("Error updating vendor:", error);
-    alert("Failed to update vendor.");
-  }
-};
-
+  };
 
   const handleDropdown = (index) => {
     setShowDropdown(showDropdown === index ? null : index);
@@ -72,27 +74,33 @@ function Vendor({list}) {
     return Math.random().toString(36).substr(2, 8);
   };
   const addVendor = () => {
-    const { contactName, name, address, phoneNumber, email, imageUrl } = newVendor;
-    if (!contactName || !name || !address || !phoneNumber || !email || !imageUrl) {
+    const { contactName, name, address, phoneNumber, email, imageUrl } =
+      newVendor;
+    if (
+      !contactName ||
+      !name ||
+      !address ||
+      !phoneNumber ||
+      !email ||
+      !imageUrl
+    ) {
       alert("Please fill in all the fields before creating a vendor.");
       return;
     }
 
-  if (editingIndex !== null) {
-  updateVendor(newVendor); // Call the update function to sync changes to the server
-} else {
-  const newVendorWithId = { ...newVendor, id: generateVendorId() };
-  setVendors([...vendors, newVendorWithId]);
-}
+    if (editingIndex !== null) {
+      updateVendor(newVendor); // Call the update function to sync changes to the server
+    } else {
+      const newVendorWithId = { ...newVendor, id: generateVendorId() };
+      setVendors([...vendors, newVendorWithId]);
+    }
 
     setShowModal(false);
     resetForm();
   };
 
   const deleteVendor = () => {
-    const updatedVendors = vendors.filter(
-      (_, index) => index !== editingIndex
-    );
+    const updatedVendors = vendors.filter((_, index) => index !== editingIndex);
     setVendors(updatedVendors);
     setShowDeleteModal(false);
   };
@@ -118,7 +126,7 @@ function Vendor({list}) {
 
   return (
     <div className="p-4">
-         <h1 className="text-center text-4xl font-bold text-customBlue mb-8">
+      <h1 className="text-center text-4xl font-bold text-customBlue mb-8">
         Vendor Management
       </h1>
       <table className="min-w-full bg-white border border-gray-300">
@@ -138,11 +146,13 @@ function Vendor({list}) {
             <tr key={index} className="text-center">
               <td className="py-2 px-2 border">{vendor.id}</td>
               <td className="py-2 px-2 border flex items-center justify-center space-x-2">
-               {vendor.image && <img
-                  src="https://media.licdn.com/dms/image/v2/C4D03AQEeEyYzNtDq7g/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1524234561685?e=2147483647&v=beta&t=uHzeaBv3V2z6Tp6wvhzGABlTs9HR-SP-tEX1UbYNn4Q"
-                  alt={vendor.contactName}
-                  className="w-8 h-8 rounded-full"
-                />}
+                {vendor.image && (
+                  <img
+                    src="https://media.licdn.com/dms/image/v2/C4D03AQEeEyYzNtDq7g/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1524234561685?e=2147483647&v=beta&t=uHzeaBv3V2z6Tp6wvhzGABlTs9HR-SP-tEX1UbYNn4Q"
+                    alt={vendor.contactName}
+                    className="w-8 h-8 rounded-full"
+                  />
+                )}
                 <span>{vendor.contactName ?? ""}</span>
               </td>
               <td className="py-2 px-2 border">{vendor.name ?? ""}</td>
@@ -193,10 +203,13 @@ function Vendor({list}) {
             <h2 className="text-xl font-bold mb-4">
               {editingIndex !== null ? "Edit Vendor" : "Add New Vendor"}
             </h2>
-            <form className="space-y-4">
+            <form onSubmit={addVendor} className="space-y-4">
               {/* Contact Name Field */}
               <div>
-                <label htmlFor="contactName" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="contactName"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Contact Name
                 </label>
                 <input
@@ -212,7 +225,10 @@ function Vendor({list}) {
 
               {/* Vendor Name Field */}
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Vendor Name
                 </label>
                 <input
@@ -228,7 +244,10 @@ function Vendor({list}) {
 
               {/* Address Field */}
               <div>
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="address"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Address
                 </label>
                 <input
@@ -244,7 +263,10 @@ function Vendor({list}) {
 
               {/* Phone Number Field */}
               <div>
-                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="phoneNumber"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Phone Number
                 </label>
                 <input
@@ -260,7 +282,10 @@ function Vendor({list}) {
 
               {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Email
                 </label>
                 <input
@@ -275,7 +300,7 @@ function Vendor({list}) {
               </div>
 
               {/* Photo Upload Field */}
-              <div>
+              {/* <div>
                 <label htmlFor="imageUpload" className="block text-sm font-medium text-gray-700">
                   Upload Photo
                 </label>
@@ -286,39 +311,42 @@ function Vendor({list}) {
                   className="w-full border px-3 py-2 rounded mt-1"
                   onChange={handlePhotoUpload}
                 />
+              </div> */}
+
+              {/* Action Buttons */}
+              <div className="mt-4 flex justify-end space-x-2">
+                <button
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                  onClick={() => {
+                    setShowModal(false);
+                    resetForm();
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
+                >
+                  {editingIndex !== null ? "Save Changes" : "Create Vendor"}
+                </button>
               </div>
             </form>
-
-            {/* Action Buttons */}
-            <div className="mt-4 flex justify-end space-x-2">
-              <button
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-                onClick={() => {
-                  setShowModal(false);
-                  resetForm();
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
-                onClick={addVendor}
-              >
-                {editingIndex !== null ? "Save Changes" : "Create Vendor"}
-              </button>
-            </div>
           </div>
         </div>
       )}
-
 
       {showDeleteModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded shadow-lg w-96">
             <h2 className="text-xl font-bold mb-4">Delete Vendor</h2>
             <p>
-              Before Deleting the vendor make sure that the related products of the vendor also get's deleted from the database
-              <span className="font-bold">{vendors[editingIndex]?.contactName}</span>?
+              Before Deleting the vendor make sure that the related products of
+              the vendor also get's deleted from the database
+              <span className="font-bold">
+                {vendors[editingIndex]?.contactName}
+              </span>
+              ?
             </p>
             <div className="mt-4 flex justify-end space-x-2">
               <button
@@ -341,4 +369,4 @@ function Vendor({list}) {
   );
 }
 
-export default Vendor
+export default Vendor;

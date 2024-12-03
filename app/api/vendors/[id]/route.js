@@ -1,27 +1,61 @@
 import { NextResponse } from "next/server";
-import {
-  UpdateCommand,
-} from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddbDocClient } from "@/config/docClient";
 
 export const PUT = async (req, ctx) => {
-  try{
+  try {
+    const updateData = await req.json();
+    const { id } = await ctx.params;
+
+    let updateExpression = "set ";
+    let expressionAttributeNames = {};
+    let expressionAttributeValues = {};
+
+    // Build the update expression dynamically based on provided fields
+    Object.entries(updateData).forEach(([key, value], index, array) => {
+      // Use a placeholder for the attribute name to avoid reserved keyword conflicts
+      const attributeNamePlaceholder = `#${key}`;
+      const attributeValuePlaceholder = `:${key}`;
+
+      // Add to the update expression
+      updateExpression += `${attributeNamePlaceholder} = ${attributeValuePlaceholder}`;
+      // Add a comma if it's not the last item
+      if (index < array.length - 1) updateExpression += ", ";
+
+      // Populate the attribute names and values
+      expressionAttributeNames[attributeNamePlaceholder] = key;
+      expressionAttributeValues[attributeValuePlaceholder] = value;
+    });
+
     const params = {
-      TableName: "Vendors",
-      Key: { id: ctx.params.id },
-      UpdateExpression: `SET #ostat = :newstat`,
-      ExpressionAttributeNames: {
-        "#ostat": "order_status",
-      },
-      ExpressionAttributeValues: {
-        ":newstat": status,
-      },
-      ReturnValues: "UPDATED_NEW",
+      TableName: "VendorAlt",
+      Key: { id },
+      UpdateExpression: updateExpression,
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
+      ReturnValues: "ALL_NEW",
     };
-    await ddbDocClient.send(new UpdateCommand(params));
-    return NextResponse.json({msg: "ok"});
-  }catch(error){
-    console.error(error);
-    return NextResponse.json({error: error.message}, {status: 500})
+
+    const data = await ddbDocClient.send(new UpdateCommand(params));
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("DynamoDB Error", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+};
+
+export const DELETE = async (req, ctx) => {
+  try{
+    const { id } = await ctx.params;
+    const params = {
+      TableName: "VendorAlt", 
+      Key: { id }
+    };
+
+    await ddbDocClient.send(new DeleteCommand(params));
+    res.status(200).json({ message: 'Item deleted successfully' });
+  } catch (error) {
+    console.error("DynamoDB Error", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
