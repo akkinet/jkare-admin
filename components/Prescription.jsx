@@ -102,7 +102,7 @@ export default function Prescription({ initialOrders, error }) {
 
   return (
     <div className="p-4 bg-[#f4f6f8] h-full">
-      <h1 className="text-2xl font-bold mb-4 text-center">
+      <h1 className="text-center text-4xl font-bold text-customBlue mb-6 ">
         Prescription Approvals
       </h1>
 
@@ -123,8 +123,8 @@ export default function Prescription({ initialOrders, error }) {
               <div className="flex space-x-2">
                 <button
                   className={`px-4 py-2 ${status === "Pending"
-                      ? "bg-pink-500 text-white"
-                      : "bg-gray-200"
+                    ? "bg-pink-500 text-white"
+                    : "bg-gray-200"
                     } rounded`}
                   onClick={() => filterHandler("Pending", prescriptionFilter)}
                 >
@@ -132,8 +132,8 @@ export default function Prescription({ initialOrders, error }) {
                 </button>
                 <button
                   className={`px-4 py-2 ${status === "Completed"
-                      ? "bg-pink-500 text-white"
-                      : "bg-gray-200"
+                    ? "bg-pink-500 text-white"
+                    : "bg-gray-200"
                     } rounded`}
                   onClick={() => filterHandler("Completed", prescriptionFilter)}
                 >
@@ -141,8 +141,8 @@ export default function Prescription({ initialOrders, error }) {
                 </button>
                 <button
                   className={`px-4 py-2 ${status === "Cancelled"
-                      ? "bg-pink-500 text-white"
-                      : "bg-gray-200"
+                    ? "bg-pink-500 text-white"
+                    : "bg-gray-200"
                     } rounded`}
                   onClick={() => filterHandler("Cancelled", prescriptionFilter)}
                 >
@@ -173,7 +173,7 @@ export default function Prescription({ initialOrders, error }) {
                 <thead>
                   <tr className="bg-gray-100">
                     <th className="py-2 px-4 text-center">Order ID</th>
-                    <th className="py-2 px-4 text-center">Customer Name</th>
+                    {/* <th className="py-2 px-4 text-center">Customer Name</th> */}
                     <th className="py-2 px-4 text-center">Customer Email</th>
                     <th className="py-2 px-4 text-center">Phone Number</th>
                     <th className="py-2 px-4 text-center">Order Date</th>
@@ -194,9 +194,9 @@ export default function Prescription({ initialOrders, error }) {
                           }`}
                       >
                         <td className="py-2 px-4 text-center">{order.id}</td>
-                        <td className="py-2 px-4 text-center">
+                        {/* <td className="py-2 px-4 text-center">
                           {order.customer_name}
-                        </td>
+                        </td> */}
                         <td className="py-2 px-4 text-center">
                           {order.customer_email}
                         </td>
@@ -207,7 +207,7 @@ export default function Prescription({ initialOrders, error }) {
                           {order.order_date}
                         </td>
                         <td className="py-2 px-4 text-center">
-                          $ {order.total_amount}/-
+                          $ {order.total_amount}
                         </td>
                         <td className="py-2 px-4 text-center">
                           {order.prescription_status === "Pending"
@@ -381,14 +381,23 @@ export default function Prescription({ initialOrders, error }) {
                                 <td className="py-2 px-4 text-center">
                                   {item.product_name}
                                 </td>
-                                <td className="py-2 px-4 text-center line-clamp-2">
-                                  {item.description}
+                                <td className="py-2 px-4 text-center group relative">
+                                  {/* Truncated Text */}
+                                  <span className="line-clamp-2">
+                                    {item.description}
+                                  </span>
+
+                                  {/* Tooltip on Hover */}
+                                  <div className="absolute left-3/4 transform top-0 mt-2 z-50 w-96 bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded shadow-lg hidden group-hover:block">
+                                    {item.description}
+                                  </div>
                                 </td>
+
                                 <td className="py-2 px-4 text-center">
                                   X{item.quantity}
                                 </td>
                                 <td className="py-2 px-4 text-center">
-                                  ${item.price}/-
+                                  ${item.price}
                                 </td>
                                 <td className="py-2 px-4 text-center">
                                   {item.prescription_required ? "Yes" : "No"}

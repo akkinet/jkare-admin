@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { FaEllipsisV, FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 function Vendor({ list }) {
   const [vendors, setVendors] = useState(list);

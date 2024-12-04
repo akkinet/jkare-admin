@@ -32,29 +32,35 @@ export default function Navbar() {
       </div>
 
       {/* User Icon */}
-      <div
-        className="cursor-pointer relative w-10 h-10 overflow-hidden rounded-full"
-        onClick={toggleDropdown}
-      >
-        {session ? (
-          <Image
-            src={session.user.image}
-            alt={session.user.name}
-            layout="fill"
-            objectFit="cover"
-            className="rounded-full"
-          />
-        ) : (
-          <Link href="/login">
-            <FaUserCircle className="text-gray-600" size={40} />
-          </Link>
+      <div className="flex items-center cursor-pointer" onClick={toggleDropdown}>
+        {/* User Image */}
+        <div className="relative w-10 h-10 overflow-hidden rounded-full mr-2">
+          {session ? (
+            <Image
+              src={session.user.image}
+              alt={session.user.name}
+              layout="fill"
+              objectFit="cover"
+              className="rounded-full"
+            />
+          ) : (
+            <Link href="/login">
+              <FaUserCircle className="text-gray-600" size={40} />
+            </Link>
+          )}
+        </div>
+
+        {/* Welcome Message */}
+        {session && (
+          <span className="text-gray-700 font-medium ">
+            Welcome,<div className="text-sm"> {session.user.name}</div>
+          </span>
         )}
       </div>
 
-
       {/* Dropdown Menu */}
       {session && showDropdown && (
-        <div className="absolute right-10 top-16 w-64 bg-white shadow-lg rounded-lg mt-2 z-10">
+        <div className="absolute right-10 top-16 w-64 bg-white shadow-lg rounded-lg mt-2 z-50">
           <div className="flex items-center p-4 border-b border-gray-200">
             <div>
               <p className="font-semibold">{session.user.name}</p>
