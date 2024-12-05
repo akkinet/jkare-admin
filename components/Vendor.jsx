@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { FaEllipsisV, FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 function Vendor({ list }) {
   const [vendors, setVendors] = useState(list);
@@ -8,6 +8,9 @@ function Vendor({ list }) {
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(""); // Add this state
+  const [filteredVendors, setFilteredVendors] = useState(list); // Add filteredVendors for search results
+
   const [newVendor, setNewVendor] = useState({
     id: "",
     contactName: "",
@@ -18,37 +21,20 @@ function Vendor({ list }) {
     imageUrl: "",
   });
 
-  const updateVendor = async (updatedVendor) => {
-    try {
-      const response = await fetch(
-        `${process.env.API_URL}/vendors/${updatedVendor.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedVendor),
-        }
-      );
+  const handleSearch = (query) => {
+    setSearchQuery(query); // Update the search query state
+    const lowerQuery = query.toLowerCase();
 
-      if (!response.ok) {
-        throw new Error(`Failed to update vendor: ${response.statusText}`);
-      }
+    // Filter vendors by id or name
+    const filtered = vendors.filter(
+      (vendor) =>
+        vendor.id.toLowerCase().includes(lowerQuery) ||
+        vendor.name.toLowerCase().includes(lowerQuery)
+    );
 
-      const updatedData = await response.json();
-
-      // Update the local state with the response data
-      setVendors((prevVendors) =>
-        prevVendors.map((vendor) =>
-          vendor.id === updatedVendor.id ? updatedData : vendor
-        )
-      );
-      alert("Vendor updated successfully!");
-    } catch (error) {
-      console.error("Error updating vendor:", error);
-      alert("Failed to update vendor.");
-    }
+    setFilteredVendors(filtered); // Update filtered vendors
   };
+
 
   const handleDropdown = (index) => {
     setShowDropdown(showDropdown === index ? null : index);
@@ -59,51 +45,124 @@ function Vendor({ list }) {
     setNewVendor({ ...newVendor, [name]: value });
   };
 
-  const handlePhotoUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setNewVendor({ ...newVendor, imageUrl: reader.result });
-      };
-      reader.readAsDataURL(file);
+  const generateVendorId = () => {
+    const prefix = "JK";
+    const randomNumber = Math.floor(200 + Math.random() * 900);
+    return `${prefix}-${randomNumber}`;
+  };
+  
+
+  const updateVendor = async () => {
+    try {
+      // Created a copy of the newVendor object excluding the `id` property
+      const { id, ...vendorData } = newVendor;
+
+      const response = await fetch(
+        `/api/vendors/${id}`, // Include the id in the URL, not in the body
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(vendorData), // Exclude id from the body
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to update vendor: ${response.statusText}`);
+      }
+
+      const updatedVendor = await response.json();
+
+      // Update local state
+      setVendors((prevVendors) =>
+        prevVendors.map((vendor, index) =>
+          index === editingIndex ? updatedVendor : vendor
+        )
+      );
+
+      alert("Vendor updated successfully!");
+    } catch (error) {
+      alert("Failed to update vendor. Please try again.");
     }
   };
 
-  const generateVendorId = () => {
-    return Math.random().toString(36).substr(2, 8);
+
+  const deleteVendor = async () => {
+    try {
+      const response = await fetch(
+        `/api/vendors/${vendors[editingIndex].id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete vendor: ${response.statusText}`);
+      }
+
+      // Update local state
+      setVendors((prevVendors) =>
+        prevVendors.filter((_, index) => index !== editingIndex)
+      );
+
+      alert("Vendor deleted successfully!");
+    } catch (error) {
+      // console.error("Error deleting vendor:", error);
+      alert("Failed to delete vendor. Please try again.");
+    }
+
+    setShowDeleteModal(false);
+    setEditingIndex(null);
   };
-  const addVendor = () => {
-    const { contactName, name, address, phoneNumber, email, imageUrl } =
-      newVendor;
-    if (
-      !contactName ||
-      !name ||
-      !address ||
-      !phoneNumber ||
-      !email ||
-      !imageUrl
-    ) {
-      alert("Please fill in all the fields before creating a vendor.");
+
+  const addOrUpdateVendor = async (e) => {
+    e.preventDefault();
+
+    const { contactName, name, address, phoneNumber, email } = newVendor;
+
+    if (!contactName || !name || !address || !phoneNumber || !email) {
+      alert("Please fill in all the fields before saving the vendor.");
       return;
     }
 
     if (editingIndex !== null) {
-      updateVendor(newVendor); // Call the update function to sync changes to the server
+      // Update vendor
+      await updateVendor();
     } else {
-      const newVendorWithId = { ...newVendor, id: generateVendorId() };
-      setVendors([...vendors, newVendorWithId]);
+      // Add new vendor
+      try {
+        const newVendorWithId = { ...newVendor, id: generateVendorId() };
+
+        const { id, ...vendorData } = newVendorWithId;
+
+        const response = await fetch(`/api/vendors/${id}`, {
+          method: "PUT", // Using PUT to add a new vendor
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(vendorData), // Exclude id from the body
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to add vendor: ${response.statusText}`);
+        }
+
+        const createdVendor = await response.json();
+
+        // Update local state
+        setVendors([...vendors, createdVendor]);
+
+        alert("Vendor added successfully!");
+      } catch (error) {
+        alert("Failed to add vendor. Please try again.");
+      }
     }
 
     setShowModal(false);
     resetForm();
   };
 
-  const deleteVendor = () => {
-    const updatedVendors = vendors.filter((_, index) => index !== editingIndex);
-    setVendors(updatedVendors);
-    setShowDeleteModal(false);
-  };
 
   const resetForm = () => {
     setNewVendor({
@@ -125,198 +184,169 @@ function Vendor({ list }) {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 bg-gray-100 min-h-screen">
       <h1 className="text-center text-4xl font-bold text-customBlue mb-8">
         Vendor Management
       </h1>
-      <table className="min-w-full bg-white border border-gray-300">
-        <thead>
-          <tr className="bg-pink-600 text-white">
-            <th className="py-2 px-4 border">Vendor Id</th>
-            <th className="py-2 px-4 border">Contact Name</th>
-            <th className="py-2 px-4 border">Vendor Name</th>
-            <th className="py-2 px-4 border">Address</th>
-            <th className="py-2 px-4 border">Phone Number</th>
-            <th className="py-2 px-4 border">Email</th>
-            <th className="py-2 px-4 border">ACTION</th>
-          </tr>
-        </thead>
-        <tbody>
-          {vendors.map((vendor, index) => (
-            <tr key={index} className="text-center">
-              <td className="py-2 px-2 border">{vendor.id}</td>
-              <td className="py-2 px-2 border flex items-center justify-center space-x-2">
-                {vendor.image && (
-                  <img
-                    src="https://media.licdn.com/dms/image/v2/C4D03AQEeEyYzNtDq7g/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1524234561685?e=2147483647&v=beta&t=uHzeaBv3V2z6Tp6wvhzGABlTs9HR-SP-tEX1UbYNn4Q"
-                    alt={vendor.contactName}
-                    className="w-8 h-8 rounded-full"
-                  />
-                )}
-                <span>{vendor.contactName ?? ""}</span>
-              </td>
-              <td className="py-2 px-2 border">{vendor.name ?? ""}</td>
-              <td className="py-2 px-2 border">{vendor.address ?? ""}</td>
-              <td className="py-2 px-2 border">{vendor.phoneNumber ?? ""}</td>
-              <td className="py-2 px-2 border">{vendor.email ?? ""}</td>
-              <td className="py-2 px-4 border relative">
-                <button
-                  className="p-1 text-gray-600 hover:text-gray-800"
-                  onClick={() => handleDropdown(index)}
-                >
-                  <FaEllipsisV />
-                </button>
-                {showDropdown === index && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-md z-10">
-                    <button
-                      className="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                      onClick={() => openEditModal(index)}
-                    >
-                      <FaEdit className="inline mr-2" /> Edit
-                    </button>
-                    <button
-                      className="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                      onClick={() => {
-                        setEditingIndex(index);
-                        setShowDeleteModal(true);
-                      }}
-                    >
-                      <FaTrash className="inline mr-2" /> Delete
-                    </button>
-                  </div>
-                )}
-              </td>
+
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by Vendor ID or Name"
+          value={searchQuery}
+          onChange={(e) => handleSearch(e.target.value)} // Call the search function
+          className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-pink-600"
+        />
+
+      </div>
+      <div className="overflow-x-auto max-h-[28vw] relative">
+        <table className="min-w-full bg-white border border-gray-300">
+          <thead className="sticky top-0 bg-pink-600 text-white z-20">
+            <tr className="bg-pink-600 text-white">
+              <th className="py-2 px-4 border">Vendor Id</th>
+              <th className="py-2 px-4 border">Contact Name</th>
+              <th className="py-2 px-4 border">Vendor Name</th>
+              <th className="py-2 px-4 border">Address</th>
+              <th className="py-2 px-4 border">Phone Number</th>
+              <th className="py-2 px-4 border">Email</th>
+              <th className="py-2 px-4 border">ACTION</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredVendors.map((vendor, index) => (
+              <tr key={index} className="text-center">
+                <td className="py-2 px-2 border">{vendor.id}</td>
+                <td className="py-2 px-2 border">{vendor.contactName ?? ""}</td>
+                <td className="py-2 px-2 border text-left relative group">
+                  {/* Truncated Name */}
+                  <div className="truncate max-w-xs cursor-pointer">
+                    {vendor.name ?? ""}
+                  </div>
+
+                  {/* Tooltip */}
+                  {vendor.name && (
+                    <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 z-50 w-64 bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded shadow-lg hidden group-hover:block">
+                      {vendor.name}
+                    </div>
+                  )}
+                </td>
+
+                <td className="py-2 px-2 border relative group">
+                  {/* Truncated Address */}
+                  <div className="truncate max-w-xs cursor-pointer">
+                    {vendor.address ?? ""}
+                  </div>
+
+                  {/* Tooltip */}
+                  {vendor.address && (
+                    <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 z-50 w-64 bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded shadow-lg hidden group-hover:block">
+                      {vendor.address}
+                    </div>
+                  )}
+                </td>
+
+                <td className="py-2 px-2 border">{vendor.phoneNumber ?? ""}</td>
+                <td className="py-2 px-2 border">{vendor.email ?? ""}</td>
+                <td className="py-2 px-4 border">
+                  <button
+                    className="p-2 text-blue-600 hover:text-blue-800"
+                    onClick={() => openEditModal(index)}
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    className="p-2 text-red-600 hover:text-red-800 ml-2"
+                    onClick={() => {
+                      setEditingIndex(index);
+                      setShowDeleteModal(true);
+                    }}
+                  >
+                    <FaTrash />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+
+        </table>
+      </div>
+
+
       <button
-        className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
+        className="mt-4 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition duration-200"
         onClick={() => setShowModal(true)}
       >
         + Add Vendor
       </button>
 
+      {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-30">
           <div className="bg-white p-6 rounded shadow-lg w-96">
             <h2 className="text-xl font-bold mb-4">
               {editingIndex !== null ? "Edit Vendor" : "Add New Vendor"}
             </h2>
-            <form onSubmit={addVendor} className="space-y-4">
-              {/* Contact Name Field */}
+            <form onSubmit={addOrUpdateVendor} className="space-y-4">
+              {/* Fields */}
               <div>
-                <label
-                  htmlFor="contactName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Contact Name
-                </label>
+                <label htmlFor="contactName">Contact Name</label>
                 <input
                   type="text"
                   id="contactName"
                   name="contactName"
-                  placeholder="Enter Contact Name"
-                  className="w-full border px-3 py-2 rounded mt-1"
-                  value={newVendor.contactName ?? ""}
+                  value={newVendor.contactName}
                   onChange={handleInputChange}
+                  className="w-full border rounded p-2"
                 />
               </div>
-
-              {/* Vendor Name Field */}
               <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Vendor Name
-                </label>
+                <label htmlFor="name">Vendor Name</label>
                 <input
                   type="text"
                   id="name"
                   name="name"
-                  placeholder="Enter Vendor Name"
-                  className="w-full border px-3 py-2 rounded mt-1"
-                  value={newVendor.name ?? ""}
+                  value={newVendor.name}
                   onChange={handleInputChange}
+                  className="w-full border rounded p-2"
                 />
               </div>
-
-              {/* Address Field */}
               <div>
-                <label
-                  htmlFor="address"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Address
-                </label>
+                <label htmlFor="address">Address</label>
                 <input
                   type="text"
                   id="address"
                   name="address"
-                  placeholder="Enter Address"
-                  className="w-full border px-3 py-2 rounded mt-1"
-                  value={newVendor.address ?? ""}
+                  value={newVendor.address}
                   onChange={handleInputChange}
+                  className="w-full border rounded p-2"
                 />
               </div>
-
-              {/* Phone Number Field */}
               <div>
-                <label
-                  htmlFor="phoneNumber"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Phone Number
-                </label>
+                <label htmlFor="phoneNumber">Phone Number</label>
                 <input
-                  type="number"
+                  type="text"
                   id="phoneNumber"
                   name="phoneNumber"
-                  placeholder="Enter Phone Number"
-                  className="w-full border px-3 py-2 rounded mt-1"
-                  value={newVendor.phoneNumber ?? ""}
+                  value={newVendor.phoneNumber}
                   onChange={handleInputChange}
+                  className="w-full border rounded p-2"
                 />
               </div>
-
-              {/* Email Field */}
               <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Email
-                </label>
+                <label htmlFor="email">Email</label>
                 <input
                   type="email"
                   id="email"
                   name="email"
-                  placeholder="Enter Email"
-                  className="w-full border px-3 py-2 rounded mt-1"
-                  value={newVendor.email ?? ""}
+                  value={newVendor.email}
                   onChange={handleInputChange}
+                  className="w-full border rounded p-2"
                 />
               </div>
-
-              {/* Photo Upload Field */}
-              {/* <div>
-                <label htmlFor="imageUpload" className="block text-sm font-medium text-gray-700">
-                  Upload Photo
-                </label>
-                <input
-                  type="file"
-                  id="imageUpload"
-                  accept="image/*"
-                  className="w-full border px-3 py-2 rounded mt-1"
-                  onChange={handlePhotoUpload}
-                />
-              </div> */}
-
-              {/* Action Buttons */}
-              <div className="mt-4 flex justify-end space-x-2">
+              <div className="flex justify-end space-x-2">
                 <button
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                  type="button"
+                  className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
                   onClick={() => {
                     setShowModal(false);
                     resetForm();
@@ -336,26 +366,25 @@ function Vendor({ list }) {
         </div>
       )}
 
+      {/* Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-30">
           <div className="bg-white p-6 rounded shadow-lg w-96">
             <h2 className="text-xl font-bold mb-4">Delete Vendor</h2>
             <p>
-              Before Deleting the vendor make sure that the related products of
-              the vendor also get's deleted from the database
-              <span className="font-bold">
-                {vendors[editingIndex]?.contactName}
-              </span>
-              ?
+              Are you sure you want to delete{" "}
+              <strong>{vendors[editingIndex]?.contactName}</strong>?
             </p>
-            <div className="mt-4 flex justify-end space-x-2">
+            <div className="flex justify-end space-x-2 mt-4">
               <button
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                type="button"
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
                 onClick={() => setShowDeleteModal(false)}
               >
                 Cancel
               </button>
               <button
+                type="button"
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                 onClick={deleteVendor}
               >

@@ -53,7 +53,7 @@ export const DELETE = async (req, ctx) => {
     };
 
     await ddbDocClient.send(new DeleteCommand(params));
-    res.status(200).json({ message: 'Item deleted successfully' });
+    return NextResponse.json({ message: 'Item deleted successfully' });
   } catch (error) {
     console.error("DynamoDB Error", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

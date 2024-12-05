@@ -1,26 +1,20 @@
-"use client"
-import React from 'react';
+// ServerSideCustomers.js
+import React from "react";
+import Customers from "../../../components/Customers"
 
-const Customers = () => {
-  return (
-    <>
-     
-    <div className="flex flex-col items-center justify-center  bg-gray-100">
-    <h1 className="text-center text-4xl font-bold text-customBlue mb-8">
-      Customer Management
-    </h1>
+const ServerCustomers = async () => {
+  let customers = [];
 
-      <div>
-        <img
-          src="https://media.giphy.com/media/3o6Zt481isNVuQI1l6/giphy.gif"
-          alt="Under Development"
-          className="w-64 h-64"
-        />
-        <p className="text-center text-gray-600 mt-4">This feature is under development.</p>
-      </div>
-    </div>
-  </>
-  );
+  try {
+    const response = await fetch("http://localhost:3000/api/customers", {
+      cache: "no-store", // Prevent caching if the data changes frequently
+    });
+    customers = await response.json();
+  } catch (error) {
+    console.error("Error fetching customers:", error);
+  }
+
+  return <Customers customers={customers} />;
 };
 
-export default Customers;
+export default ServerCustomers;

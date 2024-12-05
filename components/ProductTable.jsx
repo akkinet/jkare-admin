@@ -21,6 +21,39 @@ const ProductTable = ({ data }) => {
     name: "",
     price: 0,
   });
+  const [isEditingDiscount, setIsEditingDiscount] = useState(false);
+  const [editDiscountValue, setEditDiscountValue] = useState({
+    prodID: "",
+    name: "",
+    discount: 0,
+  });
+
+  const discountHandler = async () => {
+    const body = { ...editDiscountValue };
+    delete body.prodID;
+    await fetch(`/api/product/${editDiscountValue.prodID}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        discount: body.discount,
+      }),
+    });
+    // Update the discount in the products state
+    setProducts((prevProducts) =>
+      prevProducts.map((p) =>
+        p.prod_id == editDiscountValue.prodID
+          ? { ...p, discount: editDiscountValue.discount }
+          : p
+      )
+    );
+    setIsEditingDiscount(false);
+    setEditDiscountValue({
+      prodID: "",
+      name: "",
+      discount: 0,
+    });
+  };
+
+
 
 
   // Handler for searching products
@@ -135,8 +168,8 @@ const ProductTable = ({ data }) => {
         />
       ) : (
         // Show the product table when showForm is false
-        <div className="border-2 border-green-500">
-          <div className="p-6 bg-gray-100 border-2 border-red-500">
+        <div className="">
+          <div className="p-6 bg-gray-100 ">
             <div className="max-w-6xl mx-auto relative">
               <h1 className="text-center text-4xl font-bold text-customBlue ">
                 All  Products
@@ -245,7 +278,7 @@ const ProductTable = ({ data }) => {
                             <div className="relative flex justify-center items-center hover:cursor-pointer">
                               {/* Button with Blinking Dot */}
                               <span className="relative flex items-center justify-center px-2 py-1 bg-red-600 text-white text-lg font-semibold rounded-md shadow-lg">
-                                Suspend
+                                Suspended
                                 <CiNoWaitingSign className="w-5 h-5 ml-2" />
                                 {/* Blinking Dot in Top-Right Corner */}
                                 <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
@@ -374,11 +407,22 @@ const ProductTable = ({ data }) => {
                           </div>
                         </td>
 
-                          {/* Discount */}
-                          <td className="border border-gray-300 px-4 py-2 relative group">
+                        <td className="border border-gray-300 px-4 py-2 relative group">
                           <div className="flex items-center justify-between">
-                            <span>{product.discount}%</span>
-                         
+                            <span>{product.discount ? `${product.discount}%` : "0%"}</span>
+                            <button
+                              className="text-gray-500"
+                              onClick={() => {
+                                setIsEditingDiscount(true);
+                                setEditDiscountValue({
+                                  discount: product.discount || 0,
+                                  name: product.prod_name,
+                                  prodID: product.prod_id,
+                                });
+                              }}
+                            >
+                              ✏️
+                            </button>
                           </div>
                         </td>
 
@@ -542,6 +586,60 @@ const ProductTable = ({ data }) => {
               </div>
             </div>
           )}
+          {isEditingDiscount && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+              <div className="bg-white w-80 p-6 rounded-lg shadow-lg transform transition-all duration-300 scale-100">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Discount Update: {editDiscountValue.name}
+                </h3>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={
+                    editDiscountValue.discount === 0 ? "" : editDiscountValue.discount
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter new discount"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^\d*$/.test(value)) {
+                      // Allow only numeric input (digits or empty string)
+                      setEditDiscountValue({
+                        ...editDiscountValue,
+                        discount: value === "" ? 0 : parseInt(value, 10),
+                      });
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      discountHandler(); // Call the save handler
+                    }
+                    ["e", "E", "+", "-"].includes(e.key) && e.preventDefault();
+                  }}
+                />
+                <div className="flex justify-end mt-4 space-x-3">
+                  <button
+                    className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 text-sm font-medium text-gray-700 transition-colors duration-200"
+                    onClick={() => {
+                      setIsEditingDiscount(false);
+                      setEditDiscountValue({ prodID: "", name: "", discount: 0 });
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium transition-transform duration-200 transform hover:scale-105"
+                    onClick={discountHandler}
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
 
         </div>
       )}
