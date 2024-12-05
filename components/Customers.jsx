@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 const Customers = ({customers}) => {
   const [searchTerm, setSearchTerm] = useState("");
 
-
-
   // Filter customers by username based on search input
   const filteredCustomers = customers.filter((customer) =>
     customer.username.toLowerCase().includes(searchTerm.toLowerCase())
@@ -32,13 +30,13 @@ const Customers = ({customers}) => {
         <table className="min-w-full bg-white rounded-lg shadow-md">
           <thead className="bg-gray-200 text-gray-700">
             <tr>
-              <th className="px-6 py-3 text-sm font-medium text-center">S. No.</th>
-              <th className="px-6 py-3 text-sm font-medium text-center">Username</th>
-              <th className="px-6 py-3 text-sm font-medium text-center">Full Name</th>
-              <th className="px-6 py-3 text-sm font-medium text-center">Email</th>
-              <th className="px-6 py-3 text-sm font-medium text-center">Phone No</th>
-              <th className="px-6 py-3 text-sm font-medium text-center">Total Orders</th>
-              <th className="px-6 py-3 text-sm font-medium text-center">Total Sales</th>
+              <th className="px-6 py-3 text-sm font-medium text-left border">S. No.</th>
+              <th className="px-6 py-3 text-sm font-medium text-left border">Username</th>
+              <th className="px-6 py-3 text-sm font-medium text-left border">Full Name</th>
+              <th className="px-6 py-3 text-sm font-medium text-left border">Email</th>
+              <th className="px-6 py-3 text-sm font-medium text-left border">Phone No</th>
+              <th className="px-6 py-3 text-sm font-medium text-left border">Total Orders</th>
+              <th className="px-6 py-3 text-sm font-medium text-left border">Total Sales</th>
             </tr>
           </thead>
           <tbody>
@@ -47,13 +45,13 @@ const Customers = ({customers}) => {
                 key={index}
                 className="border border-b-gray-300"
               >
-                <td className="px-6 py-4 text-sm text-center">{index + 1}</td>
-                <td className="px-6 py-4 text-sm text-center">{customer.username}</td>
-                <td className="px-6 py-4 text-sm text-center">{customer.fullName}</td>
-                <td className="px-6 py-4 text-sm text-center">{customer.email}</td>
-                <td className="px-6 py-4 text-sm text-center">{customer.phone}</td>
-                <td className="px-6 py-4 text-sm text-center">{customer.totalOrders}</td>
-                <td className="px-6 py-4 text-sm text-center">$ {customer.totalSales}</td>
+                <td className="px-6 py-3 text-sm text-left border">{index + 1}</td>
+                <td className="px-6 py-3 text-sm text-left border">{customer.username}</td>
+                <td className="px-6 py-3 text-sm text-left border">{customer.fullName}</td>
+                <td className="px-6 py-3 text-sm text-left border">{customer.email}</td>
+                <td className="px-6 py-3 text-sm text-left border">{customer.phone}</td>
+                <td className="px-6 py-3 text-sm text-left border">{customer.totalOrders}</td>
+                <td className="px-6 py-3 text-sm text-left border">$ {customer.totalSales}</td>
               </tr>
             ))}
           </tbody>

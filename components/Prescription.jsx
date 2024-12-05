@@ -26,6 +26,9 @@ export default function Prescription({ initialOrders, error }) {
     setHighlightedOrderId(order.id);
     setShowOrderModal(true);
   };
+  console.log("Order Status:", orderDetails);
+console.log("Info Requested:", infoRequestedOrders);
+
 
   const approvalHandler = async (id) => {
     await fetch(`/api/order/${id}`, {
@@ -171,17 +174,17 @@ export default function Prescription({ initialOrders, error }) {
             <div className="w-full overflow-auto">
               <table className="bg-white border border-gray-200 shadow-md rounded w-full">
                 <thead>
-                  <tr className="bg-gray-100">
-                    <th className="py-2 px-4 text-center">Order ID</th>
+                  <tr className="bg-gray-100 ">
+                    <th className="py-2 px-4 text-center border">Order ID</th>
                     {/* <th className="py-2 px-4 text-center">Customer Name</th> */}
-                    <th className="py-2 px-4 text-center">Customer Email</th>
-                    <th className="py-2 px-4 text-center">Phone Number</th>
-                    <th className="py-2 px-4 text-center">Order Date</th>
-                    <th className="py-2 px-4 text-center">Order Value</th>
-                    <th className="py-2 px-4 text-center">Prescription Status</th>
-                    <th className="py-2 px-4 text-center">Detail</th>
+                    <th className="py-2 px-4 text-center border">Customer Email</th>
+                    <th className="py-2 px-4 text-center border">Phone Number</th>
+                    <th className="py-2 px-4 text-center border">Order Date</th>
+                    <th className="py-2 px-4 text-center border">Order Value</th>
+                    <th className="py-2 px-4 text-center border">Prescription Status</th>
+                    <th className="py-2 px-4 text-center border">Detail</th>
                     {status === "Pending" && (
-                      <th className="py-2 px-4 text-center">Action</th>
+                      <th className="py-2 px-4 text-center border ">Action</th>
                     )}
                   </tr>
                 </thead>
@@ -190,31 +193,31 @@ export default function Prescription({ initialOrders, error }) {
                     filteredOrders.map((order) => (
                       <tr
                         key={order.id}
-                        className={`border-b ${order.id === highlightedOrderId ? "bg-cyan-200/80" : ""
+                        className={`cursor-pointer border-b ${order.id === highlightedOrderId ? "bg-cyan-200/80" : ""
                           }`}
                       >
-                        <td className="py-2 px-4 text-center">{order.id}</td>
+                        <td className="py-2 px-4 text-center border">{order.id}</td>
                         {/* <td className="py-2 px-4 text-center">
                           {order.customer_name}
                         </td> */}
-                        <td className="py-2 px-4 text-center">
+                        <td className="py-2 px-4 text-left border">
                           {order.customer_email}
                         </td>
-                        <td className="py-2 px-4 text-center">
+                        <td className="py-2 px-4 text-center border">
                           {order.customer_phone}
                         </td>
-                        <td className="py-2 px-4 text-center">
+                        <td className="py-2 px-4 text-center border">
                           {order.order_date}
                         </td>
-                        <td className="py-2 px-4 text-center">
+                        <td className="py-2 px-4 text-center border">
                           $ {order.total_amount}
                         </td>
-                        <td className="py-2 px-4 text-center">
+                        <td className="py-2 px-4 text-center border">
                           {order.prescription_status === "Pending"
                             ? "Pending"
                             : "Received"}
                         </td>
-                        <td className="py-2 px-4 text-center">
+                        <td className="py-2 px-4 text-center border">
                           <button
                             className="bg-pink-500 text-white px-3 py-1 rounded"
                             onClick={() => handleViewMore(order)}
@@ -223,7 +226,7 @@ export default function Prescription({ initialOrders, error }) {
                           </button>
                         </td>
                         {status === "Pending" && (
-                          <td className="py-2 px-4 flex justify-center space-x-2">
+                          <td className="py-2 px-4 flex justify-around space-x-2">
                             <button
                               className="bg-green-500 text-white px-3 py-1 rounded"
                               onClick={() => {
@@ -254,7 +257,6 @@ export default function Prescription({ initialOrders, error }) {
               </table>
             </div>
           </div>
-
 
           {showOrderModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">

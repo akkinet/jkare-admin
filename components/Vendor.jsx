@@ -214,7 +214,7 @@ function Vendor({ list }) {
           </thead>
           <tbody>
             {filteredVendors.map((vendor, index) => (
-              <tr key={index} className="text-center">
+              <tr key={index} className="text-left">
                 <td className="py-2 px-2 border">{vendor.id}</td>
                 <td className="py-2 px-2 border">{vendor.contactName ?? ""}</td>
                 <td className="py-2 px-2 border text-left relative group">
