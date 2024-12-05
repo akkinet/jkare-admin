@@ -407,8 +407,9 @@ export default function Prescription({ initialOrders, error }) {
                       >
                         Close
                       </button>
-                      {orderDetails.status === "Pending" &&
-                        !infoRequestedOrders[orderDetails.id] && (
+                      {orderDetails.order_status === "Pending" &&
+                        // !infoRequestedOrders[orderDetails.id] && 
+                        (
                           <div className="flex space-x-4">
                             <button
                               className="bg-green-500 text-white px-4 py-2 rounded"
