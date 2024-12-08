@@ -19,7 +19,7 @@ const Sidebar = () => {
   const [activeComponent, setActiveComponent] = useState("dashboard");
   const router = useRouter();
 
-  useEffect(() => {
+  useEffect(() => {3
     if (router && router.pathname) {
       const currentPath = router.pathname.slice(1) || "dashboard";
       setActiveComponent(currentPath);
@@ -207,7 +207,7 @@ const Sidebar = () => {
               <span className="hidden md:inline ml-3">User Management</span>
             </Link>
           </li>
-          <li>
+          {/* <li>
             <Link
               href="/dashboard/accountSettings"
               className={`w-full flex items-center p-2 rounded group ${
@@ -226,7 +226,7 @@ const Sidebar = () => {
               />
               <span className="hidden md:inline ml-3">Account Settings</span>
             </Link>
-          </li>
+          </li> */}
           <li>
             <Link
               href="/dashboard/userRoles"

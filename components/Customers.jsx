@@ -51,7 +51,7 @@ const Customers = ({customers}) => {
                 <td className="px-6 py-3 text-sm text-left border">{customer.email}</td>
                 <td className="px-6 py-3 text-sm text-left border">{customer.phone}</td>
                 <td className="px-6 py-3 text-sm text-left border">{customer.totalOrders}</td>
-                <td className="px-6 py-3 text-sm text-left border">$ {customer.totalSales}</td>
+                <td className="px-6 py-3 text-sm text-left border">$ {customer.totalSales.toLocaleString()}</td>
               </tr>
             ))}
           </tbody>

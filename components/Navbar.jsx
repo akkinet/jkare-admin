@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaUserCircle,
   FaBell,
@@ -11,12 +11,13 @@ import {
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const { data: session } = useSession();
   const [showDropdown, setShowDropdown] = useState(false);
   const [notifications, setNotifications] = useState(2);
-
+  const router = useRouter();
   const toggleDropdown = () => setShowDropdown(!showDropdown);
 
   return (
@@ -71,18 +72,22 @@ export default function Navbar() {
             </div>
           </div>
           <div className="flex flex-col p-2">
-            <Link href="/profile" target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center p-2 hover:bg-gray-100 rounded-md">
+            {/* <button
+              onClick={() => {
+                setShowDropdown(false);
+                router.push("/profile");
+              }}
+              className="flex items-center p-2 hover:bg-gray-100 rounded-md"
+            >
               <FaUserAlt className="mr-2 text-gray-600" /> View Profile
+            </button> */}
 
-            </Link>
-            <button className="flex items-center p-2 hover:bg-gray-100 rounded-md">
+            {/* <button className="flex items-center p-2 hover:bg-gray-100 rounded-md">
               <FaCog className="mr-2 text-gray-600" /> Account Settings
-            </button>
-            <button className="flex items-center p-2 hover:bg-gray-100 rounded-md">
+            </button> */}
+            {/* <button className="flex items-center p-2 hover:bg-gray-100 rounded-md">
               <FaBell className="mr-2 text-gray-600" /> Notifications
-            </button>
+            </button> */}
             <button className="flex items-center p-2 hover:bg-gray-100 rounded-md">
               <FaQuestionCircle className="mr-2 text-gray-600" /> Help Center
             </button>

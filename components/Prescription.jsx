@@ -2,11 +2,14 @@
 import { useState, useEffect } from "react";
 
 export default function Prescription({ initialOrders, error }) {
+  const sortedOrders = [...initialOrders].sort(
+    (a, b) => new Date(b.order_date) - new Date(a.order_date)
+  );
   const [status, setStatus] = useState("Pending");
   const [prescriptionFilter, setPrescriptionFilter] = useState("both");
   const [orderDetails, setOrderDetails] = useState(null);
-  const [orders, setOrders] = useState(initialOrders);
-  const [filteredOrders, setFilteredOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState(sortedOrders);
+  const [filteredOrders, setFilteredOrders] = useState(sortedOrders);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
@@ -27,7 +30,7 @@ export default function Prescription({ initialOrders, error }) {
     setShowOrderModal(true);
   };
   console.log("Order Status:", orderDetails);
-console.log("Info Requested:", infoRequestedOrders);
+  console.log("Info Requested:", infoRequestedOrders);
 
 
   const approvalHandler = async (id) => {
@@ -104,7 +107,7 @@ console.log("Info Requested:", infoRequestedOrders);
   };
 
   return (
-    <div className="p-4 bg-[#f4f6f8] h-full">
+    <div className="p-4 bg-[#f4f6f8] h-[89vh]">
       <h1 className="text-center text-4xl font-bold text-customBlue mb-6 ">
         Prescription Approvals
       </h1>
@@ -170,11 +173,11 @@ console.log("Info Requested:", infoRequestedOrders);
             </div>
           </div>
 
-          <div className="overflow-x-auto max-h-72 mt-4 text-sm ">
-            <div className="w-full overflow-auto">
-              <table className="bg-white border border-gray-200 shadow-md rounded w-full">
-                <thead>
-                  <tr className="bg-gray-100 ">
+          <div className="overflow-x-auto  mt-4 text-sm ">
+            <div className="w-full overflow-auto max-h-96">
+              <table className="bg-white border border-gray-300 shadow-md w-full">
+                <thead className="sticky top-0">
+                  <tr className="bg-gray-200 ">
                     <th className="py-2 px-4 text-center border">Order ID</th>
                     {/* <th className="py-2 px-4 text-center">Customer Name</th> */}
                     <th className="py-2 px-4 text-center border">Customer Email</th>
@@ -203,13 +206,13 @@ console.log("Info Requested:", infoRequestedOrders);
                         <td className="py-2 px-4 text-left border">
                           {order.customer_email}
                         </td>
-                        <td className="py-2 px-4 text-center border">
+                        <td className="py-2 px-4 text-left border">
                           {order.customer_phone}
                         </td>
-                        <td className="py-2 px-4 text-center border">
+                        <td className="py-2 px-4 text-left border">
                           {order.order_date}
                         </td>
-                        <td className="py-2 px-4 text-center border">
+                        <td className="py-2 px-4 text-left border">
                           $ {order.total_amount}
                         </td>
                         <td className="py-2 px-4 text-center border">
@@ -298,17 +301,24 @@ console.log("Info Requested:", infoRequestedOrders);
                             <strong>Shipping Address:</strong>{" "}
                             {`${orderDetails.shipping_address.line1}, ${orderDetails.shipping_address.city}, ${orderDetails.shipping_address.state}, ${orderDetails.shipping_address.postal_code}, ${orderDetails.shipping_address.country}`}
                           </p>
+
+                          {/* Insurance Section */}
+
                           <p>
                             <strong>Insurance Received:</strong>{" "}
-                            {orderDetails.insurance_pdf ? "Yes" : "No"}
+                            {orderDetails.insurance_pdf ? orderDetails.insurance_company : "No"}
                           </p>
                           {orderDetails.insurance_pdf && (
-                            <div>
-                              <strong>Insurance PDF:</strong>{" "}
-                              <button className="bg-pink-500 text-white px-3 py-1 rounded">
-                                View Insurance
-                              </button>
-                            </div>
+                            <p className="mt-4">
+                              <strong>Insurance File: </strong>
+                              <a
+                                href={orderDetails.insurance_pdf}
+                                download
+                                className="bg-customPink text-white px-4 py-2 rounded hover:bg-customBlue transition duration-200"
+                              >
+                                Download Insurance File
+                              </a>
+                            </p>
                           )}
                         </div>
                       </div>
@@ -350,60 +360,78 @@ console.log("Info Requested:", infoRequestedOrders);
                       <h3 className="text-lg font-bold mb-2">
                         Product Details
                       </h3>
-                      <div className="overflow-y-auto max-h-60">
+                      <div className="overflow-y-auto max-h-72">
                         <table className="min-w-full bg-white table-auto">
-                          <thead>
-                            <tr>
-                              <th className="py-2 px-4 w-10">S.No</th>
-                              <th className="py-2 px-4 w-20">Prod ID</th>
-                              <th className="py-2 px-4 w-24">Prod Image</th>
-                              <th className="py-2 px-4 w-32">Prod Name</th>
-                              <th className="py-2 px-4 w-48">Prod Details</th>
-                              <th className="py-2 px-4 w-12">Qty</th>
-                              <th className="py-2 px-4 w-28">Item Value</th>
-                              <th className="py-2 px-4 w-20">Prescription</th>
+                          <thead className="sticky top-0 z-50">
+                            <tr className="bg-gray-300">
+                              <th className="py-2 px-4 w-10 border">S.No</th>
+                              <th className="py-2 px-4 w-20 border">Prod ID</th>
+                              <th className="py-2 px-4 w-24 border">Prod Image</th>
+                              <th className="py-2 px-4 w-32 border">Prod Name</th>
+                              <th className="py-2 px-4 w-48 border">Prod Details</th>
+                              <th className="py-2 px-4 w-12 border">Qty</th>
+                              <th className="py-2 px-4 w-28 border">Item Value</th>
+                              <th className="py-2 px-4 w-20 border">Prescription</th>
                             </tr>
                           </thead>
                           <tbody>
                             {orderDetails.items.map((item, index) => (
                               <tr key={index} className="border-t">
-                                <td className="py-2 px-4 text-center">
+                                <td className="py-1 px-4 text-center border border-gray-300">
                                   {index + 1}
                                 </td>
-                                <td className="py-2 px-4 text-center">
+                                <td className="py-1 px-4 text-center border border-gray-300">
                                   {item.product_id}
                                 </td>
-                                <td className="py-2 px-4 text-center">
+                                <td className="py-1 px-4 text-center border border-gray-300">
                                   <img
                                     src={item.image}
                                     alt={item.product_name}
                                     className="h-12 w-12 object-cover"
                                   />
                                 </td>
-                                <td className="py-2 px-4 text-center">
+                                <td className="py-1 px-4 text-center border border-gray-300">
                                   {item.product_name}
                                 </td>
-                                <td className="py-2 px-4 text-center group relative">
+                                <td className="py-1 px-4 text-center border border-gray-300 group relative">
                                   {/* Truncated Text */}
                                   <span className="line-clamp-2">
                                     {item.description}
                                   </span>
 
                                   {/* Tooltip on Hover */}
-                                  <div className="absolute left-3/4 transform top-0 mt-2 z-50 w-96 bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded shadow-lg hidden group-hover:block">
+                                  <div className="absolute left-3/4 transform top-0 mt-2 z-10 w-96 bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded shadow-lg hidden group-hover:block">
                                     {item.description}
                                   </div>
                                 </td>
 
-                                <td className="py-2 px-4 text-center">
+                                <td className="py-1 px-4 text-center border border-gray-300">
                                   X{item.quantity}
                                 </td>
-                                <td className="py-2 px-4 text-center">
+                                <td className="py-1 px-4 text-center border border-gray-300">
                                   ${item.price}
                                 </td>
-                                <td className="py-2 px-4 text-center">
-                                  {item.prescription_required ? "Yes" : "No"}
+                                <td className="px-4 py-1 border text-center">
+                                  {item.prescription_required && item.prescription_file ? (
+                                    <div className="flex flex-col items-center space-y-2">
+                                      {/* Display a truncated file name */}
+                                      <p className="text-gray-600 text-sm">
+                                        {item.prescription_file.split('/').pop().slice(0, 12)}...
+                                      </p>
+                                      {/* Download Button */}
+                                      <a
+                                        href={item.prescription_file}
+                                        download
+                                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200"
+                                      >
+                                        Download
+                                      </a>
+                                    </div>
+                                  ) : (
+                                    "Not Required"
+                                  )}
                                 </td>
+
                               </tr>
                             ))}
                           </tbody>

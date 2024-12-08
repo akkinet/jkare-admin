@@ -47,6 +47,7 @@ const Dashboard = ({data}) => {
     totalSales: data.totalSales,
   });
   const [apiData, setApiData] = useState(data);
+  let newTotalSales = data.totalSales.toLocaleString();
 
 
   const fetchData = async (year) => {
@@ -127,7 +128,7 @@ const Dashboard = ({data}) => {
     },
     {
       title: `Total Sales`,
-      value: `$${apiData?.totalSales || 0}`,
+      value: `$${newTotalSales || 0}`,
       color: "linear-gradient(135deg, #667eea, #764ba2)",
     },
   ];
