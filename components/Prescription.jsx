@@ -16,6 +16,9 @@ export default function Prescription({ initialOrders, error }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [highlightedOrderId, setHighlightedOrderId] = useState(null);
   const [showRequestInfoModal, setShowRequestInfoModal] = useState(false);
+  const [showFileUploadModal, setShowFileUploadModal] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState(null);
+
   const [emailDetails, setEmailDetails] = useState({
     to: "",
     message: "",
@@ -216,10 +219,26 @@ export default function Prescription({ initialOrders, error }) {
                           $ {order.total_amount}
                         </td>
                         <td className="py-2 px-4 text-center border">
-                          {order.prescription_status === "Pending"
-                            ? "Pending"
-                            : "Received"}
+                          {order.prescription_status === "Pending" ? (
+                            <div className="relative">
+                              <select
+                                className="border p-2 rounded"
+                                onChange={(e) => {
+                                  if (e.target.value === "Received") {
+                                    setSelectedOrder(order); // Set selected order
+                                    setShowFileUploadModal(true); // Show the file upload modal
+                                  }
+                                }}
+                              >
+                                <option value="Pending">Pending</option>
+                                <option value="Received">Received</option>
+                              </select>
+                            </div>
+                          ) : (
+                            "Received"
+                          )}
                         </td>
+
                         <td className="py-2 px-4 text-center border">
                           <button
                             className="bg-pink-500 text-white px-3 py-1 rounded"
@@ -260,6 +279,65 @@ export default function Prescription({ initialOrders, error }) {
               </table>
             </div>
           </div>
+
+          {showFileUploadModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+              <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
+                <h2 className="text-xl font-bold mb-4">Upload Prescription</h2>
+                <label className="block mb-4">
+                  <span className="font-bold">Prescription File:</span>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => setUploadedFile(e.target.files[0])}
+                    className="border border-gray-300 rounded w-full px-2 py-1"
+                  />
+                </label>
+                <div className="flex justify-between">
+                  <button
+                    className="bg-gray-500 text-white px-4 py-2 rounded"
+                    onClick={() => setShowFileUploadModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                    onClick={async () => {
+                      if (uploadedFile) {
+                        // Call API to upload file and update status
+                        const formData = new FormData();
+                        formData.append("prescription_file", uploadedFile);
+
+                        const response = await fetch(`/api/order/${selectedOrder.id}`, {
+                          method: "PUT",
+                          body: formData,
+                        });
+
+                        if (response.ok) {
+                          // Update the order in the local state
+                          const updatedOrders = orders.map((order) =>
+                            order.id === selectedOrder.id
+                              ? { ...order, prescription_status: "Received" }
+                              : order
+                          );
+                          setOrders(updatedOrders);
+                          setFilteredOrders(updatedOrders); // Update filtered list
+                          setShowFileUploadModal(false); // Close modal
+                        } else {
+                          alert("Failed to upload prescription. Please try again.");
+                        }
+                      } else {
+                        alert("Please select a file to upload.");
+                      }
+                    }}
+                  >
+                    Upload & Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
 
           {showOrderModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
