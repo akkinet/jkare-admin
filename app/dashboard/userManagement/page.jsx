@@ -1,73 +1,86 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaEye, FaEyeSlash } from "react-icons/fa";
 
 function UserManagement() {
-  const dummyUsers = [
-    {
-      userId: "AjaySuperAdmin@jkare.com",
-      name: "Ajay Verma",
-      phoneNumber: "123-456-7890",
-      role: "Super Admin",
-      password: "superadmin123",
-      profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/Untitled-design-25.png"
-    },
-    {
-      userId: "AtulAnalyst@jkare.com",
-      name: "Atul Verma",
-      phoneNumber: "987-654-3210",
-      role: "Analyst",
-      password: "analyst456",
-      profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/7.png"
-    },
-    {
-      userId: "ShivamBillingSpecialist@jkare.com",
-      name: "Shivam Awasthi",
-      phoneNumber: "555-123-4567",
-      role: "Billing Specialist",
-      password: "billing789",
-      profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/1.png"
-    },
+  // const dummyUsers = [
+  //   {
+  //     userId: "AjaySuperAdmin@jkare.com",
+  //     name: "Ajay Verma",
+  //     phoneNumber: "123-456-7890",
+  //     role: "Super Admin",
+  //     password: "superadmin123",
+  //     profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/Untitled-design-25.png"
+  //   },
+  //   {
+  //     userId: "AtulAnalyst@jkare.com",
+  //     name: "Atul Verma",
+  //     phoneNumber: "987-654-3210",
+  //     role: "Analyst",
+  //     password: "analyst456",
+  //     profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/7.png"
+  //   },
+  //   {
+  //     userId: "ShivamBillingSpecialist@jkare.com",
+  //     name: "Shivam Awasthi",
+  //     phoneNumber: "555-123-4567",
+  //     role: "Billing Specialist",
+  //     password: "billing789",
+  //     profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/1.png"
+  //   },
 
-    {
-      userId: "AkashBillingSpecialist@jkare.com",
-      name: "Akash sharma",
-      phoneNumber: "568-353-4568",
-      role: "Billing Specialist",
-      password: "billing789",
-      profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/5.png"
-    },
-    {
-      userId: "KashishAnalyst@jkare.com",
-      name: "Kashish sharma",
-      phoneNumber: "865-289-3869",
-      role: "Analyst",
-      password: "billing789",
-      profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/8.png"
-    },
-    {
-      userId: "MohitSuperAdmin@jkare.com",
-      name: "Mohit Sharma",
-      phoneNumber: "695-556-7284",
-      role: "Super Admin",
-      password: "billing789",
-      profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/9.png"
-    },
+  //   {
+  //     userId: "AkashBillingSpecialist@jkare.com",
+  //     name: "Akash sharma",
+  //     phoneNumber: "568-353-4568",
+  //     role: "Billing Specialist",
+  //     password: "billing789",
+  //     profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/5.png"
+  //   },
+  //   {
+  //     userId: "KashishAnalyst@jkare.com",
+  //     name: "Kashish sharma",
+  //     phoneNumber: "865-289-3869",
+  //     role: "Analyst",
+  //     password: "billing789",
+  //     profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/8.png"
+  //   },
+  //   {
+  //     userId: "MohitSuperAdmin@jkare.com",
+  //     name: "Mohit Sharma",
+  //     phoneNumber: "695-556-7284",
+  //     role: "Super Admin",
+  //     password: "billing789",
+  //     profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/9.png"
+  //   },
 
-  ];
-
-  const [users, setUsers] = useState(dummyUsers);
+  // ];
+ 
+  const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState(dummyUsers);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [passwordVisibility, setPasswordVisibility] = useState({});
+  
+  
+  useEffect(() => {
+    // Fetch data from API and update the state
+    async function fetchApi(){
+      const response = await fetch('/api/user');
+      const data = await response.json();
+      setUsers(data);
+      setFilteredUsers(data);
+    }
+
+    fetchApi();
+  }, [])
 
   const [newUser, setNewUser] = useState({
-    userId: "",
+    email: "",
     name: "",
-    phoneNumber: "",
+    phone: "",
     role: "Analyst",
     password: "",
   });
@@ -175,25 +188,25 @@ function UserManagement() {
               <th className="py-2 px-4 border">Name</th>
               <th className="py-2 px-4 border">Phone Number</th>
               <th className="py-2 px-4 border">Role</th>
-              <th className="py-2 px-4 border">Password</th>
+              {/* <th className="py-2 px-4 border">Password</th> */}
               <th className="py-2 px-4 border">ACTION</th>
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((user, index) => (
+            {filteredUsers.length > 0 ? filteredUsers.map((user, index) => (
               <tr key={index} className="text-left">
-                <td className="py-2 px-4 border">{user.userId}</td>
+                <td className="py-2 px-4 border">{user.email}</td>
                 <td className="py-2 px-4 border flex items-center space-x-2">
                   <img
-                    src={user.profile_pic}
+                    src={user.image}
                     alt={`${user.name}'s profile`}
                     className="w-10 h-10 rounded-full object-cover"
                   />
                   <span>{user.name}</span>
                 </td>
-                <td className="py-2 px-4 border">{user.phoneNumber}</td>
+                <td className="py-2 px-4 border">{user.phone}</td>
                 <td className="py-2 px-4 border">{user.role}</td>
-                <td className="py-2 px-4 border">
+                {/* <td className="py-2 px-4 border">
                   <span>
                     {passwordVisibility[index] ? user.password : "••••••••"}
                   </span>
@@ -203,7 +216,7 @@ function UserManagement() {
                   >
                     {passwordVisibility[index] ? <FaEyeSlash /> : <FaEye />}
                   </button>
-                </td>
+                </td> */}
                 <td className="py-2 px-4 border">
                   <button
                     className="p-2 text-blue-600 hover:text-blue-800"
@@ -222,7 +235,7 @@ function UserManagement() {
                   </button>
                 </td>
               </tr>
-            ))}
+            )) : <tr></tr>}
           </tbody>
         </table>
       </div>
@@ -242,8 +255,8 @@ function UserManagement() {
                 <input
                   type="email"
                   id="userId"
-                  name="userId"
-                  value={newUser.userId}
+                  name="email"
+                  value={newUser.email}
                   onChange={handleInputChange}
                   className="w-full border rounded p-2"
                 />
@@ -264,8 +277,8 @@ function UserManagement() {
                 <input
                   type="text"
                   id="phoneNumber"
-                  name="phoneNumber"
-                  value={newUser.phoneNumber}
+                  name="phone"
+                  value={newUser.phone}
                   onChange={handleInputChange}
                   className="w-full border rounded p-2"
                 />
@@ -301,8 +314,8 @@ function UserManagement() {
                   type="text"
                   id="profile_pic"
                   name="profile_pic"
-                  value={newUser.profile_pic || ""}
-                  onChange={handleInputChange}
+                  // value={newUser.profile_pic || ""}
+                  // onChange={handleInputChange}
                   className="w-full border rounded p-2"
                 />
               </div>
