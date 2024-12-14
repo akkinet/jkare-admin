@@ -4,9 +4,18 @@ import { NextResponse } from "next/server";
 
 export const GET = async (req) => {
   try {
+    const {searchParams} = new URL(req.url);
+
     let params = {
       TableName: "AdminUsers",
     };
+
+    if(searchParams.has("email") && searchParams.has("email")){
+      params.FilterExpression = "contains(email, :email)",
+      params.ExpressionAttributeValues = {
+        ":email": searchParams.get("email"),
+      }
+    }
 
     const command = new ScanCommand(params);
 
