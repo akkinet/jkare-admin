@@ -1,73 +1,17 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaEdit, FaTrash, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 function UserManagement() {
-  // const dummyUsers = [
-  //   {
-  //     userId: "AjaySuperAdmin@jkare.com",
-  //     name: "Ajay Verma",
-  //     phoneNumber: "123-456-7890",
-  //     role: "Super Admin",
-  //     password: "superadmin123",
-  //     profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/Untitled-design-25.png"
-  //   },
-  //   {
-  //     userId: "AtulAnalyst@jkare.com",
-  //     name: "Atul Verma",
-  //     phoneNumber: "987-654-3210",
-  //     role: "Analyst",
-  //     password: "analyst456",
-  //     profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/7.png"
-  //   },
-  //   {
-  //     userId: "ShivamBillingSpecialist@jkare.com",
-  //     name: "Shivam Awasthi",
-  //     phoneNumber: "555-123-4567",
-  //     role: "Billing Specialist",
-  //     password: "billing789",
-  //     profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/1.png"
-  //   },
-
-  //   {
-  //     userId: "AkashBillingSpecialist@jkare.com",
-  //     name: "Akash sharma",
-  //     phoneNumber: "568-353-4568",
-  //     role: "Billing Specialist",
-  //     password: "billing789",
-  //     profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/5.png"
-  //   },
-  //   {
-  //     userId: "KashishAnalyst@jkare.com",
-  //     name: "Kashish sharma",
-  //     phoneNumber: "865-289-3869",
-  //     role: "Analyst",
-  //     password: "billing789",
-  //     profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/8.png"
-  //   },
-  //   {
-  //     userId: "MohitSuperAdmin@jkare.com",
-  //     name: "Mohit Sharma",
-  //     phoneNumber: "695-556-7284",
-  //     role: "Super Admin",
-  //     password: "billing789",
-  //     profile_pic: "https://hexerve.com/wp-content/uploads/2024/09/9.png"
-  //   },
-
-  // ];
- 
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [passwordVisibility, setPasswordVisibility] = useState({});
-  
-  
+
   useEffect(() => {
-    // Fetch data from API and update the state
-    async function fetchApi(){
+    async function fetchApi() {
       const response = await fetch('/api/user');
       const data = await response.json();
       setUsers(data);
@@ -75,7 +19,7 @@ function UserManagement() {
     }
 
     fetchApi();
-  }, [])
+  }, []);
 
   const [newUser, setNewUser] = useState({
     email: "",
@@ -83,6 +27,7 @@ function UserManagement() {
     phone: "",
     role: "Analyst",
     password: "",
+    profilePic: "",
   });
 
   const handleSearch = (query) => {
@@ -105,39 +50,64 @@ function UserManagement() {
 
   const resetForm = () => {
     setNewUser({
-      userId: "",
+      email: "",
       name: "",
-      phoneNumber: "",
+      phone: "",
       role: "Analyst",
       password: "",
+      profilePic: "",
     });
     setEditingIndex(null);
   };
 
-  const addOrUpdateUser = (e) => {
+  const addOrUpdateUser = async (e) => {
     e.preventDefault();
 
-    const { userId, name, phoneNumber, role, password } = newUser;
-
-    if (!userId || !name || !phoneNumber || !role || !password) {
-      alert("Please fill in all the fields before saving the user.");
+    if (!newUser.email || !newUser.name || !newUser.phone || !newUser.role || !newUser.password || !newUser.profilePic) {
+      alert("All fields are required!");
       return;
     }
 
     if (editingIndex !== null) {
-      // Update the existing user
-      const updatedUsers = [...users];
-      updatedUsers[editingIndex] = { ...newUser }; // Update the user at editingIndex
-      setUsers(updatedUsers); // Save the updated list back to state
+      // Update user logic
+      const response = await fetch(`/api/user/${newUser.email}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newUser),
+      });
+
+      if (response.ok) {
+        alert("User updated successfully!");
+        const updatedUsers = [...users];
+        updatedUsers[editingIndex] = { ...newUser };
+        setUsers(updatedUsers);
+      } else {
+        alert("Failed to update user.");
+      }
     } else {
-      // Add a new user
-      setUsers([...users, newUser]);
+      // Add a new user via API
+      const response = await fetch('/api/user', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newUser),
+      });
+
+      if (response.ok) {
+        alert("User created successfully!");
+        const createdUser = await response.json();
+        setUsers([...users, createdUser]);
+      } else {
+        alert("Failed to create user.");
+      }
     }
 
-    setShowModal(false); // Close the modal
-    resetForm(); // Reset the form state
+    setShowModal(false);
+    resetForm();
   };
-
 
   const openEditModal = (index) => {
     setEditingIndex(index);
@@ -145,17 +115,24 @@ function UserManagement() {
     setShowModal(true);
   };
 
-  const deleteUser = () => {
-    setUsers(users.filter((_, index) => index !== editingIndex));
+  const deleteUser = async () => {
+    const userIdToDelete = users[editingIndex]?.email;
+
+    if (userIdToDelete) {
+      const response = await fetch(`/api/user/${userIdToDelete}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert("User deleted successfully!");
+        setUsers(users.filter((_, index) => index !== editingIndex));
+      } else {
+        alert("Failed to delete user.");
+      }
+    }
+
     setShowDeleteModal(false);
     setEditingIndex(null);
-  };
-
-  const togglePasswordVisibility = (index) => {
-    setPasswordVisibility((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
   };
 
   return (
@@ -188,7 +165,6 @@ function UserManagement() {
               <th className="py-2 px-4 border">Name</th>
               <th className="py-2 px-4 border">Phone Number</th>
               <th className="py-2 px-4 border">Role</th>
-              {/* <th className="py-2 px-4 border">Password</th> */}
               <th className="py-2 px-4 border">ACTION</th>
             </tr>
           </thead>
@@ -198,7 +174,7 @@ function UserManagement() {
                 <td className="py-2 px-4 border">{user.email}</td>
                 <td className="py-2 px-4 border flex items-center space-x-2">
                   <img
-                    src={user.image}
+                    src={user.profilePic}
                     alt={`${user.name}'s profile`}
                     className="w-10 h-10 rounded-full object-cover"
                   />
@@ -206,17 +182,6 @@ function UserManagement() {
                 </td>
                 <td className="py-2 px-4 border">{user.phone}</td>
                 <td className="py-2 px-4 border">{user.role}</td>
-                {/* <td className="py-2 px-4 border">
-                  <span>
-                    {passwordVisibility[index] ? user.password : "••••••••"}
-                  </span>
-                  <button
-                    className="ml-2 text-gray-600 hover:text-gray-800"
-                    onClick={() => togglePasswordVisibility(index)}
-                  >
-                    {passwordVisibility[index] ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </td> */}
                 <td className="py-2 px-4 border">
                   <button
                     className="p-2 text-blue-600 hover:text-blue-800"
@@ -235,12 +200,10 @@ function UserManagement() {
                   </button>
                 </td>
               </tr>
-            )) : <tr></tr>}
+            )) : <tr><td colSpan="5" className="text-center py-4">No users found.</td></tr>}
           </tbody>
         </table>
       </div>
-
-
 
       {/* Add/Edit Modal */}
       {showModal && (
@@ -273,10 +236,10 @@ function UserManagement() {
                 />
               </div>
               <div>
-                <label htmlFor="phoneNumber">Phone Number</label>
+                <label htmlFor="phone">Phone Number</label>
                 <input
                   type="text"
-                  id="phoneNumber"
+                  id="phone"
                   name="phone"
                   value={newUser.phone}
                   onChange={handleInputChange}
@@ -300,7 +263,7 @@ function UserManagement() {
               <div>
                 <label htmlFor="password">Password</label>
                 <input
-                  type={editingIndex !== null ? "text" : "password"}
+                  type="password"
                   id="password"
                   name="password"
                   value={newUser.password}
@@ -309,13 +272,13 @@ function UserManagement() {
                 />
               </div>
               <div>
-                <label htmlFor="profile_pic">Profile Picture URL</label>
+                <label htmlFor="profilePic">Profile Picture URL</label>
                 <input
                   type="text"
-                  id="profile_pic"
-                  name="profile_pic"
-                  // value={newUser.profile_pic || ""}
-                  // onChange={handleInputChange}
+                  id="profilePic"
+                  name="profilePic"
+                  value={newUser.profilePic}
+                  onChange={handleInputChange}
                   className="w-full border rounded p-2"
                 />
               </div>
@@ -341,7 +304,6 @@ function UserManagement() {
           </div>
         </div>
       )}
-
 
       {/* Delete Modal */}
       {showDeleteModal && (
