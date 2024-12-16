@@ -536,21 +536,25 @@ export default function Prescription({ initialOrders, error }) {
                                   ${item.price}
                                 </td>
                                 <td className="px-4 py-1 border text-center">
-                                  {item.prescription_required && item.prescription_file ? (
-                                    <div className="flex flex-col items-center space-y-2">
-                                      {/* Display a truncated file name */}
-                                      <p className="text-gray-600 text-sm">
-                                        {item.prescription_file.split('/').pop().slice(0, 12)}...
-                                      </p>
-                                      {/* Download Button */}
-                                      <a
-                                        href={item.prescription_file}
-                                        download
-                                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200"
-                                      >
-                                        Download
-                                      </a>
-                                    </div>
+                                  {item.prescription_required ? (
+                                    item.prescription_file ? (
+                                      <div className="flex flex-col items-center space-y-2">
+                                        {/* Display a truncated file name */}
+                                        <p className="text-gray-600 text-sm">
+                                          {item.prescription_file.split('/').pop().slice(0, 12)}...
+                                        </p>
+                                        {/* Download Button */}
+                                        <a
+                                          href={item.prescription_file}
+                                          download
+                                          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200"
+                                        >
+                                          Download
+                                        </a>
+                                      </div>
+                                    ) : (
+                                      <span className="text-red-500">Required</span>
+                                    )
                                   ) : (
                                     "Not Required"
                                   )}
