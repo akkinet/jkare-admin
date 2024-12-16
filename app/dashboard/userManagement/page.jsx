@@ -9,13 +9,9 @@ function UserManagement() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
-<<<<<<< HEAD
-
-=======
   // const [passwordVisibility, setPasswordVisibility] = useState({});
   
   
->>>>>>> 594883959e97c2a4b7f4d194a10f646453db18b4
   useEffect(() => {
     async function fetchApi() {
       const response = await fetch('/api/user');
