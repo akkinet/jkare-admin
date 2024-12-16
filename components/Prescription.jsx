@@ -18,6 +18,9 @@ export default function Prescription({ initialOrders, error }) {
   const [showRequestInfoModal, setShowRequestInfoModal] = useState(false);
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [sameFileForAll, setSameFileForAll] = useState(false);
+  const [sameFile, setSameFile] = useState(null); // To store the file for all items
+
 
   const [emailDetails, setEmailDetails] = useState({
     to: "",
@@ -26,6 +29,40 @@ export default function Prescription({ initialOrders, error }) {
   });
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [infoRequestedOrders, setInfoRequestedOrders] = useState({});
+  const uploadPrescriptionForAll = async (orderId, file) => {
+    const formData = new FormData();
+    formData.append("prescription_file", file);
+
+    // API call to upload file
+    const response = await fetch(`/api/order/${orderId}/upload-prescription`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (response.ok) {
+      const { fileUrl } = await response.json();
+
+      // Update orders state with the new prescription file for all items
+      const updatedOrders = orders.map((order) => {
+        if (order.id === orderId) {
+          const updatedItems = order.items.map((item) =>
+            item.prescription_required
+              ? { ...item, prescription_file: fileUrl }
+              : item
+          );
+          return { ...order, items: updatedItems, prescription_status: "Received" };
+        }
+        return order;
+      });
+
+      setOrders(updatedOrders);
+      setFilteredOrders(updatedOrders);
+    } else {
+      alert("Failed to upload prescription. Please try again.");
+    }
+  };
+
+
 
   const handleViewMore = (order) => {
     setOrderDetails(order);
@@ -35,8 +72,14 @@ export default function Prescription({ initialOrders, error }) {
   console.log("Order Status:", orderDetails);
   console.log("Info Requested:", infoRequestedOrders);
 
-
   const approvalHandler = async (id) => {
+    const selectedOrder = orders.find((order) => order.id === id);
+
+    if (selectedOrder.prescription_status !== "Received") {
+      alert("You cannot approve the order until the prescription is uploaded and status is changed to 'Received'.");
+      return;
+    }
+
     await fetch(`/api/order/${id}`, {
       method: "PUT",
       body: JSON.stringify({ status: "Completed" }),
@@ -49,6 +92,7 @@ export default function Prescription({ initialOrders, error }) {
     setShowApproveModal(false);
     setShowOrderModal(false);
   };
+
 
   const cancelHandler = async (id, remark, email, status) => {
     await fetch(`/api/order/${id}`, {
@@ -222,11 +266,11 @@ export default function Prescription({ initialOrders, error }) {
                           {order.prescription_status === "Pending" ? (
                             <div className="relative">
                               <select
-                                className="border p-2 rounded"
+                                className="border rounded"
                                 onChange={(e) => {
                                   if (e.target.value === "Received") {
-                                    setSelectedOrder(order); // Set selected order
-                                    setShowFileUploadModal(true); // Show the file upload modal
+                                    setSelectedOrder(order);
+                                    setShowFileUploadModal(true);
                                   }
                                 }}
                               >
@@ -239,6 +283,7 @@ export default function Prescription({ initialOrders, error }) {
                           )}
                         </td>
 
+
                         <td className="py-2 px-4 text-center border">
                           <button
                             className="bg-pink-500 text-white px-3 py-1 rounded"
@@ -250,14 +295,21 @@ export default function Prescription({ initialOrders, error }) {
                         {status === "Pending" && (
                           <td className="py-2 px-4 flex justify-around space-x-2">
                             <button
-                              className="bg-green-500 text-white px-3 py-1 rounded"
+                              className={`px-4 py-2 rounded ${order.prescription_status === "Received" ? "bg-green-500 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                }`}
+                              disabled={order.prescription_status !== "Received"}
                               onClick={() => {
-                                setSelectedOrder(order);
-                                setShowApproveModal(true);
+                                if (order.prescription_status === "Received") {
+                                  setSelectedOrder(order);
+                                  setShowApproveModal(true);
+                                }
                               }}
                             >
                               Approve
                             </button>
+
+
+
                             <button
                               className="bg-red-500 text-white px-3 py-1 rounded"
                               onClick={() => handleCancel(order)}
@@ -284,15 +336,27 @@ export default function Prescription({ initialOrders, error }) {
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
               <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
                 <h2 className="text-xl font-bold mb-4">Upload Prescription</h2>
+
                 <label className="block mb-4">
                   <span className="font-bold">Prescription File:</span>
                   <input
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => setUploadedFile(e.target.files[0])}
+                    onChange={(e) => setSameFile(e.target.files[0])}
                     className="border border-gray-300 rounded w-full px-2 py-1"
                   />
                 </label>
+
+                <label className="block mb-4">
+                  <input
+                    type="checkbox"
+                    checked={sameFileForAll}
+                    onChange={(e) => setSameFileForAll(e.target.checked)}
+                    className="mr-2"
+                  />
+                  Use the same file for all prescription items
+                </label>
+
                 <div className="flex justify-between">
                   <button
                     className="bg-gray-500 text-white px-4 py-2 rounded"
@@ -303,29 +367,9 @@ export default function Prescription({ initialOrders, error }) {
                   <button
                     className="bg-blue-500 text-white px-4 py-2 rounded"
                     onClick={async () => {
-                      if (uploadedFile) {
-                        // Call API to upload file and update status
-                        const formData = new FormData();
-                        formData.append("prescription_file", uploadedFile);
-
-                        const response = await fetch(`/api/order/${selectedOrder.id}`, {
-                          method: "PUT",
-                          body: formData,
-                        });
-
-                        if (response.ok) {
-                          // Update the order in the local state
-                          const updatedOrders = orders.map((order) =>
-                            order.id === selectedOrder.id
-                              ? { ...order, prescription_status: "Received" }
-                              : order
-                          );
-                          setOrders(updatedOrders);
-                          setFilteredOrders(updatedOrders); // Update filtered list
-                          setShowFileUploadModal(false); // Close modal
-                        } else {
-                          alert("Failed to upload prescription. Please try again.");
-                        }
+                      if (sameFile) {
+                        await uploadPrescriptionForAll(selectedOrder.id, sameFile);
+                        setShowFileUploadModal(false);
                       } else {
                         alert("Please select a file to upload.");
                       }
@@ -337,6 +381,8 @@ export default function Prescription({ initialOrders, error }) {
               </div>
             </div>
           )}
+
+
 
 
           {showOrderModal && (
@@ -525,11 +571,12 @@ export default function Prescription({ initialOrders, error }) {
                         Close
                       </button>
                       {orderDetails.order_status === "Pending" &&
-                        // !infoRequestedOrders[orderDetails.id] && 
                         (
                           <div className="flex space-x-4">
                             <button
-                              className="bg-green-500 text-white px-4 py-2 rounded"
+                              className={`px-4 py-2 rounded ${orderDetails.prescription_status === "Received" ? "bg-green-500 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                }`}
+                              disabled={orderDetails.prescription_status !== "Received"}
                               onClick={() => approvalHandler(orderDetails.id)}
                             >
                               Approve
@@ -548,6 +595,7 @@ export default function Prescription({ initialOrders, error }) {
                             </button>
                           </div>
                         )}
+
                     </div>
                   </>
                 )}

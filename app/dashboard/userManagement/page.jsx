@@ -30,18 +30,30 @@ function UserManagement() {
     profilePic: "",
   });
 
-  const handleSearch = (query) => {
+  const handleSearch = async (query) => {
     setSearchQuery(query);
-    const lowerQuery = query.toLowerCase();
-
-    const filtered = users.filter(
-      (user) =>
-        user.userId.toLowerCase().includes(lowerQuery) ||
-        user.name.toLowerCase().includes(lowerQuery)
-    );
-
-    setFilteredUsers(filtered);
+    
+    if (!query.trim()) {
+      setFilteredUsers(users); // Reset to all users if the search query is empty
+      return;
+    }
+  
+    try {
+      const response = await fetch(`/api/user?email=${query}`);
+      if (response.ok) {
+        const data = await response.json();
+        setFilteredUsers([data]); // Display only the matching user
+      } else {
+        setFilteredUsers([]); // Clear if no user is found
+        alert("No user found with this email.");
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      alert("Error fetching user. Please try again.");
+    }
   };
+  
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -119,7 +131,7 @@ function UserManagement() {
     const userIdToDelete = users[editingIndex]?.email;
 
     if (userIdToDelete) {
-      const response = await fetch(`/api/user/${userIdToDelete}`, {
+      const response = await fetch(`/api/user?email=${userIdToDelete}`, {
         method: 'DELETE',
       });
 
@@ -130,6 +142,7 @@ function UserManagement() {
         alert("Failed to delete user.");
       }
     }
+
 
     setShowDeleteModal(false);
     setEditingIndex(null);
