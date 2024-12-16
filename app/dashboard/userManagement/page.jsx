@@ -62,7 +62,7 @@ function UserManagement() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [passwordVisibility, setPasswordVisibility] = useState({});
+  // const [passwordVisibility, setPasswordVisibility] = useState({});
   
   
   useEffect(() => {
@@ -151,12 +151,12 @@ function UserManagement() {
     setEditingIndex(null);
   };
 
-  const togglePasswordVisibility = (index) => {
-    setPasswordVisibility((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
-  };
+  // const togglePasswordVisibility = (index) => {
+  //   setPasswordVisibility((prev) => ({
+  //     ...prev,
+  //     [index]: !prev[index],
+  //   }));
+  // };
 
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
@@ -297,7 +297,7 @@ function UserManagement() {
                   <option value="Billing Specialist">Billing Specialist</option>
                 </select>
               </div>
-              <div>
+              {/* <div>
                 <label htmlFor="password">Password</label>
                 <input
                   type={editingIndex !== null ? "text" : "password"}
@@ -307,7 +307,7 @@ function UserManagement() {
                   onChange={handleInputChange}
                   className="w-full border rounded p-2"
                 />
-              </div>
+              </div> */}
               <div>
                 <label htmlFor="profile_pic">Profile Picture URL</label>
                 <input
