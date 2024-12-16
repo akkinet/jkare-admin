@@ -56,10 +56,10 @@ export async function PUT(req, ctx) {
     }
 
     // Update all items in the 'items' array
-    const updatedItems = Item.items.map((item) => ({
+    const updatedItems = Item.items.map((item) => item.prescription_required ? ({
       ...item,
       prescription_file: fileUrl
-    }));
+    }): item);
 
     // Update DynamoDB record with file URL
     const updateParams = new UpdateCommand({
