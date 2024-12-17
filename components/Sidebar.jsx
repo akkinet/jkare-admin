@@ -7,19 +7,20 @@ import {
   FaStore,
   FaBox,
   FaUserCog,
-  FaCog,
   FaUserShield,
   FaPrescription,
-  FaShoppingCart 
+  FaShoppingCart,
 } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const Sidebar = () => {
   const [activeComponent, setActiveComponent] = useState("dashboard");
+  const { data: session, status } = useSession();
   const router = useRouter();
 
-  useEffect(() => {3
+  useEffect(() => {
     if (router && router.pathname) {
       const currentPath = router.pathname.slice(1) || "dashboard";
       setActiveComponent(currentPath);
@@ -29,6 +30,60 @@ const Sidebar = () => {
   const handleSetActive = (component) => {
     setActiveComponent(component);
   };
+
+  // Role-based menu items
+  const role = session?.user?.role || "Super Admin";
+
+  const menuItems = {
+    "Super Admin": [
+      { href: "/", label: "Dashboard", icon: FaChartLine, key: "dashboard" },
+      { href: "/dashboard/customer", label: "Customers", icon: FaUsers, key: "customer" },
+      { href: "/dashboard/orders", label: "Orders", icon: FaShoppingCart, key: "orders" },
+      { href: "/dashboard/prescription", label: "Prescription", icon: FaPrescription, key: "prescription" },
+      { href: "/dashboard/billing", label: "Billing & Payments", icon: FaFileInvoiceDollar, key: "billing" },
+      { href: "/dashboard/vendor", label: "Vendors", icon: FaStore, key: "vendor" },
+      { href: "/dashboard/products", label: "Products", icon: FaBox, key: "products" },
+      { href: "/dashboard/userManagement", label: "User Management", icon: FaUserCog, key: "userManagement" },
+      { href: "/dashboard/userRoles", label: "User Roles", icon: FaUserShield, key: "userRoles" },
+    ],
+    Analyst: [
+      { href: "/", label: "Dashboard", icon: FaChartLine, key: "dashboard" },
+      { href: "/dashboard/orders", label: "Orders", icon: FaShoppingCart, key: "orders" },
+      { href: "/dashboard/prescription", label: "Prescription", icon: FaPrescription, key: "prescription" },
+    ],
+    "Billing Specialist": [
+      { href: "/", label: "Dashboard", icon: FaChartLine, key: "dashboard" },
+      { href: "/dashboard/customer", label: "Customers", icon: FaUsers, key: "customer" },
+      { href: "/dashboard/orders", label: "Orders", icon: FaShoppingCart, key: "orders" },
+      { href: "/dashboard/billing", label: "Billing & Payments", icon: FaFileInvoiceDollar, key: "billing" },
+    ],
+  };
+
+  const visibleMenuItems = menuItems[role] || [];
+
+  if (status === "loading") {
+    // **Skeletal Loader** while session is being fetched
+    return (
+      <div className="flex h-[100vh]">
+        <div className="bg-customlightGray p-4 shadow-lg flex flex-col items-center w-20 md:w-64 lg:w-64 animate-pulse">
+          <div className="mb-8 w-full flex justify-center">
+            <div className="h-14 w-14 bg-gray-300 rounded-md"></div>
+          </div>
+          <div className="h-5 w-32 bg-gray-300 rounded mb-6"></div>
+          <ul className="space-y-4 w-full">
+            {Array(7)
+              .fill(0)
+              .map((_, idx) => (
+                <li key={idx} className="flex items-center space-x-4 p-2">
+                  <div className="h-8 w-8 bg-gray-300 rounded"></div>
+                  <div className="h-4 w-24 bg-gray-300 rounded hidden md:block"></div>
+                </li>
+              ))}
+          </ul>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[100vh]">
@@ -45,208 +100,30 @@ const Sidebar = () => {
             alt="Jkare Logo"
           />
         </div>
+        {/* <div>Role: {role}</div> */}
         <ul className="space-y-4 w-full">
-          <li>
-            <Link
-              href="/"
-              className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "dashboard"
-                  ? "bg-customPink text-white"
-                  : "text-customDarkGray"
-              } hover:bg-customPink hover:text-white`}
-              onClick={() => handleSetActive("dashboard")}
-            >
-              <FaChartLine
-                className={`text-xl ${
-                  activeComponent === "dashboard"
-                    ? "text-white"
-                    : "text-customBlue"
-                } group-hover:text-white`}
-              />
-              <span className="hidden md:inline ml-3">Dashboard</span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/dashboard/customer"
-              className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "customer"
-                  ? "bg-customPink text-white"
-                  : "text-customDarkGray"
-              } hover:bg-customPink hover:text-white`}
-              onClick={() => handleSetActive("customer")}
-            >
-              <FaUsers
-                className={`text-xl ${
-                  activeComponent === "customer"
-                    ? "text-white"
-                    : "text-customBlue"
-                } group-hover:text-white`}
-              />
-              <span className="hidden md:inline ml-3">Customers</span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/dashboard/orders"
-              className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "orders"
-                  ? "bg-customPink text-white"
-                  : "text-customDarkGray"
-              } hover:bg-customPink hover:text-white`}
-              onClick={() => handleSetActive("orders")}
-            >
-              <FaShoppingCart
-                className={`text-xl ${
-                  activeComponent === "orders"
-                    ? "text-white"
-                    : "text-customBlue"
-                } group-hover:text-white`}
-              />
-              <span className="hidden md:inline ml-3">Orders</span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/dashboard/prescription"
-              className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "prescription"
-                  ? "bg-customPink text-white"
-                  : "text-customDarkGray"
-              } hover:bg-customPink hover:text-white`}
-              onClick={() => handleSetActive("prescription")}
-            >
-              <FaPrescription
-                className={`text-xl ${
-                  activeComponent === "prescription"
-                    ? "text-white"
-                    : "text-customBlue"
-                } group-hover:text-white`}
-              />
-              <span className="hidden md:inline ml-3">Prescription</span>
-            </Link>
-          </li>
-          
-          <li>
-            <Link
-              href="/dashboard/billing"
-              className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "billing"
-                  ? "bg-customPink text-white"
-                  : "text-customDarkGray"
-              } hover:bg-customPink hover:text-white`}
-              onClick={() => handleSetActive("billing")}
-            >
-              <FaFileInvoiceDollar
-                className={`text-xl ${
-                  activeComponent === "billing"
-                    ? "text-white"
-                    : "text-customBlue"
-                } group-hover:text-white`}
-              />
-              <span className="hidden md:inline ml-3">Billing & Payments</span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/dashboard/vendor"
-              className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "vendor"
-                  ? "bg-customPink text-white"
-                  : "text-customDarkGray"
-              } hover:bg-customPink hover:text-white`}
-              onClick={() => handleSetActive("vendor")}
-            >
-              <FaStore
-                className={`text-xl ${
-                  activeComponent === "vendor"
-                    ? "text-white"
-                    : "text-customBlue"
-                } group-hover:text-white`}
-              />
-              <span className="hidden md:inline ml-3">Vendors</span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/dashboard/products"
-              className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "products"
-                  ? "bg-customPink text-white"
-                  : "text-customDarkGray"
-              } hover:bg-customPink hover:text-white`}
-              onClick={() => handleSetActive("products")}
-            >
-              <FaBox
-                className={`text-xl ${
-                  activeComponent === "products"
-                    ? "text-white"
-                    : "text-customBlue"
-                } group-hover:text-white`}
-              />
-              <span className="hidden md:inline ml-3">Products</span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/dashboard/userManagement"
-              className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "userManagement"
-                  ? "bg-customPink text-white"
-                  : "text-customDarkGray"
-              } hover:bg-customPink hover:text-white`}
-              onClick={() => handleSetActive("userManagement")}
-            >
-              <FaUserCog
-                className={`text-xl ${
-                  activeComponent === "userManagement"
-                    ? "text-white"
-                    : "text-customBlue"
-                } group-hover:text-white`}
-              />
-              <span className="hidden md:inline ml-3">User Management</span>
-            </Link>
-          </li>
-          {/* <li>
-            <Link
-              href="/dashboard/accountSettings"
-              className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "accountSettings"
-                  ? "bg-customPink text-white"
-                  : "text-customDarkGray"
-              } hover:bg-customPink hover:text-white`}
-              onClick={() => handleSetActive("accountSettings")}
-            >
-              <FaCog
-                className={`text-xl ${
-                  activeComponent === "accountSettings"
-                    ? "text-white"
-                    : "text-customBlue"
-                } group-hover:text-white`}
-              />
-              <span className="hidden md:inline ml-3">Account Settings</span>
-            </Link>
-          </li> */}
-          <li>
-            <Link
-              href="/dashboard/userRoles"
-              className={`w-full flex items-center p-2 rounded group ${
-                activeComponent === "userRoles"
-                  ? "bg-customPink text-white"
-                  : "text-customDarkGray"
-              } hover:bg-customPink hover:text-white`}
-              onClick={() => handleSetActive("userRoles")}
-            >
-              <FaUserShield
-                className={`text-xl ${
-                  activeComponent === "userRoles"
-                    ? "text-white"
-                    : "text-customBlue"
-                } group-hover:text-white`}
-              />
-              <span className="hidden md:inline ml-3">User Roles</span>
-            </Link>
-          </li>
+          {visibleMenuItems.map((item) => (
+            <li key={item.key}>
+              <Link
+                href={item.href}
+                className={`w-full flex items-center p-2 rounded group ${
+                  activeComponent === item.key
+                    ? "bg-customPink text-white"
+                    : "text-customDarkGray"
+                } hover:bg-customPink hover:text-white`}
+                onClick={() => handleSetActive(item.key)}
+              >
+                <item.icon
+                  className={`text-xl ${
+                    activeComponent === item.key
+                      ? "text-white"
+                      : "text-customBlue"
+                  } group-hover:text-white`}
+                />
+                <span className="hidden md:inline ml-3">{item.label}</span>
+              </Link>
+            </li>
+          ))}
         </ul>
       </div>
     </div>
