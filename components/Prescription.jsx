@@ -29,38 +29,47 @@ export default function Prescription({ initialOrders, error }) {
   });
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [infoRequestedOrders, setInfoRequestedOrders] = useState({});
+
   const uploadPrescriptionForAll = async (orderId, file) => {
     const formData = new FormData();
-    formData.append("prescription_file", file);
-
-    // API call to upload file
-    const response = await fetch(`/api/order/${orderId}/upload-prescription`, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (response.ok) {
-      const { fileUrl } = await response.json();
-
-      // Update orders state with the new prescription file for all items
-      const updatedOrders = orders.map((order) => {
-        if (order.id === orderId) {
-          const updatedItems = order.items.map((item) =>
-            item.prescription_required
-              ? { ...item, prescription_file: fileUrl }
-              : item
-          );
-          return { ...order, items: updatedItems, prescription_status: "Received" };
-        }
-        return order;
+    formData.append("file", file);
+  
+    try {
+      // PUT Request to upload file to database
+      const response = await fetch(`http://localhost:3000/api/prescription/${orderId}`, {
+        method: "PUT",
+        body: formData,
       });
-
-      setOrders(updatedOrders);
-      setFilteredOrders(updatedOrders);
-    } else {
-      alert("Failed to upload prescription. Please try again.");
+  
+      if (response.ok) {
+        const { fileUrl } = await response.json();
+  
+        // Update the orders state with the new prescription file for all matching items
+        const updatedOrders = orders.map((order) => {
+          if (order.id === orderId) {
+            const updatedItems = order.items.map((item) =>
+              item.prescription_required && !item.prescription_file
+                ? { ...item, prescription_file: fileUrl }
+                : item
+            );
+  
+            return { ...order, items: updatedItems, prescription_status: "Received" };
+          }
+          return order;
+        });
+  
+        setOrders(updatedOrders);
+        setFilteredOrders(updatedOrders);
+        alert("Prescription uploaded and updated for all applicable items.");
+      } else {
+        alert("Failed to upload prescription. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error uploading prescription:", error);
+      alert("An error occurred while uploading the prescription.");
     }
   };
+  
 
 
 
@@ -333,61 +342,52 @@ export default function Prescription({ initialOrders, error }) {
           </div>
 
           {showFileUploadModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-              <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">Upload Prescription</h2>
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
+      <h2 className="text-xl font-bold mb-4">Upload Prescription</h2>
 
-                <label className="block mb-4">
-                  <span className="font-bold">Prescription File:</span>
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => setSameFile(e.target.files[0])}
-                    className="border border-gray-300 rounded w-full px-2 py-1"
-                  />
-                </label>
+      <label className="block mb-4">
+        <span className="font-bold">Prescription File:</span>
+        <input
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png"
+          onChange={(e) => setUploadedFile(e.target.files[0])}
+          className="border border-gray-300 rounded w-full px-2 py-1"
+        />
+      </label>
 
-                <label className="block mb-4">
-                  <input
-                    type="checkbox"
-                    checked={sameFileForAll}
-                    onChange={(e) => setSameFileForAll(e.target.checked)}
-                    className="mr-2"
-                  />
-                  Use the same file for all prescription items
-                </label>
+      <div className="flex justify-between">
+        <button
+          className="bg-gray-500 text-white px-4 py-2 rounded"
+          onClick={() => setShowFileUploadModal(false)}
+        >
+          Cancel
+        </button>
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+          onClick={async () => {
+            if (uploadedFile) {
+              await uploadPrescriptionForAll(selectedOrder.id, uploadedFile);
+              setShowFileUploadModal(false);
+            } else {
+              alert("Please select a file to upload.");
+            }
+          }}
+        >
+          Upload & Save
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
-                <div className="flex justify-between">
-                  <button
-                    className="bg-gray-500 text-white px-4 py-2 rounded"
-                    onClick={() => setShowFileUploadModal(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded"
-                    onClick={async () => {
-                      if (sameFile) {
-                        await uploadPrescriptionForAll(selectedOrder.id, sameFile);
-                        setShowFileUploadModal(false);
-                      } else {
-                        alert("Please select a file to upload.");
-                      }
-                    }}
-                  >
-                    Upload & Save
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
 
 
 
           {showOrderModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-              <div className="bg-white p-6 rounded shadow-md w-full max-w-7xl">
+              <div className="bg-white p-6 rounded shadow-md w-[90%] lg: max-w-7xl">
                 <h2 className="text-xl font-bold mb-2 border-b-2 border-gray-300">
                   Order Details
                 </h2>
@@ -440,7 +440,7 @@ export default function Prescription({ initialOrders, error }) {
                                 download
                                 className="bg-customPink text-white px-4 py-2 rounded hover:bg-customBlue transition duration-200"
                               >
-                                Download Insurance File
+                                View File
                               </a>
                             </p>
                           )}
@@ -500,21 +500,21 @@ export default function Prescription({ initialOrders, error }) {
                           </thead>
                           <tbody>
                             {orderDetails.items.map((item, index) => (
-                              <tr key={index} className="border-t">
+                              <tr key={index} className="border-t text-sm">
                                 <td className="py-1 px-4 text-center border border-gray-300">
                                   {index + 1}
                                 </td>
                                 <td className="py-1 px-4 text-center border border-gray-300">
                                   {item.product_id}
                                 </td>
-                                <td className="py-1 px-4 text-center border border-gray-300">
+                                <td className="py-1 px-4 text-center border border-gray-300  ">
                                   <img
                                     src={item.image}
                                     alt={item.product_name}
                                     className="h-12 w-12 object-cover"
                                   />
                                 </td>
-                                <td className="py-1 px-4 text-center border border-gray-300">
+                                <td className="py-1 px-4 text-center border border-gray-300 ">
                                   {item.product_name}
                                 </td>
                                 <td className="py-1 px-4 text-center border border-gray-300 group relative">
@@ -530,7 +530,7 @@ export default function Prescription({ initialOrders, error }) {
                                 </td>
 
                                 <td className="py-1 px-4 text-center border border-gray-300">
-                                  X{item.quantity}
+                                  X {item.quantity}
                                 </td>
                                 <td className="py-1 px-4 text-center border border-gray-300">
                                   ${item.price}
@@ -549,7 +549,7 @@ export default function Prescription({ initialOrders, error }) {
                                           download
                                           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200"
                                         >
-                                          Download
+                                          View
                                         </a>
                                       </div>
                                     ) : (
