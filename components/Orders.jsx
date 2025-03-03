@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const Orders = ({ initialOrders }) => {
 
@@ -69,9 +69,9 @@ const Orders = ({ initialOrders }) => {
           </thead>
           <tbody>
             {filteredOrders.map((order, index) => (
-              <tr key={order.id} className="border-b last:border-none">
+              <tr key={order._id} className="border-b last:border-none">
                 <td className="px-6 py-2 text-sm text-center">{index + 1}</td>
-                <td className="px-6 py-2 text-sm text-center">{order.id}</td>
+                <td className="px-6 py-2 text-sm text-center">{order._id}</td>
                 <td className="px-6 py-2 text-sm text-center">{order.customer_email}</td>
                 <td className="px-6 py-2 text-sm text-center">{order.order_date}</td>
                 <td className="px-6 py-2 text-sm text-center">

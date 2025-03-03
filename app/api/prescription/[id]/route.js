@@ -31,7 +31,7 @@ export async function PUT(req, ctx) {
     await s3Client.send(new PutObjectCommand(uploadParams));
     const fileUrl = `https://s3.${process.env.AWS_REGION}.amazonaws.com/${BUCKET_NAME}/${fileName}`;
 
-    const ordersCollection = db.collection("Orders");
+    const ordersCollection = db.collection("Order");
 
     // Retrieve the existing order data
     const order = await ordersCollection.findOne({ _id: orderId });

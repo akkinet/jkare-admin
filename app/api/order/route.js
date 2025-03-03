@@ -6,7 +6,7 @@ export const GET = async (req, ctx) => {
     const { searchParams } = new URL(req.url);
 
     // Connect to MongoDB
-    const ordersCollection = db.collection('Orders');
+    const ordersCollection = db.collection('Order');
 
     // Build the query
     const query = {};

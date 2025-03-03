@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import db from "@/lib/db";
+import db from "../../../lib/mongodb";
 
 export const GET = async (req) => {
   try {
@@ -10,7 +10,7 @@ export const GET = async (req) => {
     const query = searchParams.get('query'); // Search query
 
     // Connect to MongoDB
-    const ordersCollection = db.collection('Orders');
+    const ordersCollection = db.collection('Order');
 
     // Build the base query
     const baseQuery = {};

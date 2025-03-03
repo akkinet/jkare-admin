@@ -8,7 +8,7 @@ export const PUT = async (req, ctx) => {
     const { status, remark, email } = await req.json();
 
     // Connect to MongoDB
-    const ordersCollection = db.collection('Orders');
+    const ordersCollection = db.collection('Order');
 
     // Prepare the update object
     const update = {
