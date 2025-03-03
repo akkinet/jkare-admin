@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['lh3.googleusercontent.com', "s3.ap-south-1.amazonaws.com" , "hexerve.com"],
+    domains: ['lh3.googleusercontent.com', "s3.ap-south-1.amazonaws.com" , "hexerve.com","images.remotePatterns"],
   },
   crossOrigin: 'anonymous',
   async redirects() {

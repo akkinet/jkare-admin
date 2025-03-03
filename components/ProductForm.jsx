@@ -66,7 +66,7 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
         ...newProduct,
         discount: parseFloat(discount.toFixed(2)),
       });
-      return discount.toFixed(2); // Returns discount percentage with two decimal places
+      return discount.toFixed(2); 
     }
     return 0;
   }, [newProduct.prod_value, dealerPrice]);
