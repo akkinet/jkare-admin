@@ -1,26 +1,20 @@
-import { ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { ddbDocClient } from "@/config/docClient";
 import { NextResponse } from "next/server";
+import db from "@/lib/mongodb";
 
 export const GET = async (req) => {
   try {
     const {searchParams} = new URL(req.url);
 
-    let params = {
-      TableName: "AdminUsers",
-    };
+    const collection = db.collection('AdminUsers');
 
-    if(searchParams.has("email") && searchParams.has("email")){
-      params.FilterExpression = "contains(email, :email)",
-      params.ExpressionAttributeValues = {
-        ":email": searchParams.get("email"),
-      }
+    // Build the query
+    let query = {};
+    if (searchParams.has("email")) {
+      query.email = { $regex: searchParams.get("email"), $options: 'i' }; // Case-insensitive search
     }
 
-    const command = new ScanCommand(params);
-
-    const result = await ddbDocClient.send(command);
-    const users = result.Count > 0 ? result.Items : [];
+    // Fetch users from the collection
+    const users = await collection.find(query).toArray();
 
     return NextResponse.json(
       users,

@@ -1,38 +1,39 @@
-import { NextResponse } from "next/server";
-import {
-  UpdateCommand,
-} from "@aws-sdk/lib-dynamodb";
-import { ddbDocClient } from "@/config/docClient";
-import sendMail from "@/config/nodeMailer";
+import { NextResponse } from 'next/server';
+import sendMail from '@/config/nodeMailer';
+import db from "@/lib/mongodb"
 
 export const PUT = async (req, ctx) => {
   try {
     const id = (await ctx.params).id;
     const { status, remark, email } = await req.json();
-    const params = {
-      TableName: "Orders",
-      Key: { id },
-      UpdateExpression: `SET #ostat = :newstat`,
-      ExpressionAttributeNames: {
-        "#ostat": "order_status",
+
+    // Connect to MongoDB
+    const ordersCollection = db.collection('Orders');
+
+    // Prepare the update object
+    const update = {
+      $set: {
+        order_status: status,
       },
-      ExpressionAttributeValues: {
-        ":newstat": status,
-      },
-      ReturnValues: "UPDATED_NEW",
     };
 
-    if(status == "Cancelled"){
-      params.ExpressionAttributeValues[":remark"] = remark;
-      params.UpdateExpression += ", remark = :remark";
+    // Add remark to the update if the status is "Cancelled"
+    if (status === "Cancelled") {
+      update.$set.remark = remark;
 
+      // Send email
       const html = `<p>${remark.msg}</p>`;
       await sendMail(email, remark.sub, html);
     }
 
-    await ddbDocClient.send(new UpdateCommand(params));
+    // Update the order in MongoDB
+    await ordersCollection.findOneAndUpdate(
+      { _id: id }, // Filter by order ID
+      update, // Update object
+      { returnDocument: 'after' } // Return the updated document
+    );
 
-    return NextResponse.json({ message: "updated" }, {status: 200});
+    return NextResponse.json({ message: "updated" }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: error.message }, { status: 500 });

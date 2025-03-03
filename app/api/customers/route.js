@@ -1,35 +1,50 @@
 import { NextResponse } from "next/server";
-import { ddbDocClient } from "@/config/docClient";
-import { ScanCommand } from "@aws-sdk/lib-dynamodb";
+import db from "@/lib/mongodb";
 
 export const GET = async (req) => {
   try {
-    const params = {
-      TableName: "Users",
-    };
+    // Fetch all users
+    const collection = db.collection("Users")
+    let customers = await collection.find({}, {
+      projection: {
+        password: 0,
+        createdAt: 0,
+        address: 0,
+        image: 0,
+        verified: 0,
+        updatedAt: 0,
+      },
+    }).toArray();
 
-    const result = await ddbDocClient.send(new ScanCommand(params));
-    let customers = result.Count ? result.Items : [];
-
-    for(const customer of customers) {
-      const orders = await fetch(`${process.env.API_URL}/order?email=${customer.email}&os=Completed`);
-      const result2 = await orders.json();
-      customer.totalOrders = result2.length;
-      customer.totalSales = result2.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
-    }
-
-    // Sort customers by total sales in descending order    
-    customers.sort((a, b) => b.totalSales - a.totalSales);
-
-    // Remove sensitive information from the response
-    customers.forEach((customer) => {
-      delete customer.password;
-      delete customer.createdAt;
-      delete customer.address;
-      delete customer.image;
-      delete customer.verified;
-      delete customer.updatedAt;
+    // Fetch all completed orders for all customers in parallel
+    const ordersPromises = customers.map(async (customer) => {
+      try {
+        const ordersResponse = await fetch(`${process.env.API_URL}/order?email=${customer.email}&os=Completed`);
+        const orders = await ordersResponse.json();
+        return { email: customer.email, orders };
+      } catch (error) {
+        console.error(`Failed to fetch orders for ${customer.email}:`, error);
+        return { email: customer.email, orders: [] }; // Return empty array if API call fails
+      }
     });
+
+    const ordersResults = await Promise.all(ordersPromises);
+
+    // Map orders to customers
+    const ordersMap = new Map();
+    ordersResults.forEach((result) => {
+      ordersMap.set(result.email, result.orders);
+    });
+
+    // Calculate totalOrders and totalSales for each customer
+    customers.forEach((customer) => {
+      const orders = ordersMap.get(customer.email) || [];
+      customer.totalOrders = orders.length;
+      customer.totalSales = orders.reduce((sum, order) => sum + parseFloat(order.total_amount || 0), 0);
+    });
+
+    // Sort customers by total sales in descending order
+    customers.sort((a, b) => b.totalSales - a.totalSales);
 
     return NextResponse.json(customers);
   } catch (error) {

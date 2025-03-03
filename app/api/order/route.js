@@ -1,29 +1,24 @@
-import { NextResponse } from "next/server";
-import {
-  ScanCommand
-} from "@aws-sdk/lib-dynamodb";
-import { ddbDocClient } from "@/config/docClient";
+import { NextResponse } from 'next/server';
+import db from "@/lib/mongodb"
 
 export const GET = async (req, ctx) => {
   try {
-    const {searchParams} = new URL(req.url);
+    const { searchParams } = new URL(req.url);
 
-    const params = {
-      TableName: "Orders",
-    };
+    // Connect to MongoDB
+    const ordersCollection = db.collection('Orders');
 
-    if(searchParams.has("email") && searchParams.has("os")){
-      params.FilterExpression = "customer_email = :email AND order_status = :status",
-      params.ExpressionAttributeValues = {
-        ":email": searchParams.get("email"),
-        ":status": searchParams.get("os"),
-      }
+    // Build the query
+    const query = {};
+    if (searchParams.has("email") && searchParams.has("os")) {
+      query.customer_email = searchParams.get("email");
+      query.order_status = searchParams.get("os");
     }
 
-    const result = await ddbDocClient.send(new ScanCommand(params));
-    const orders = result.Count ? result.Items : [];
+    // Fetch orders from the collection
+    const orders = await ordersCollection.find(query).toArray();
 
-    return NextResponse.json(orders, {status: 200});
+    return NextResponse.json(orders, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: error.message }, { status: 500 });

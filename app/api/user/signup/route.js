@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { ddbDocClient } from "@/config/docClient";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import db from "@/lib/mongodb"
 
 export const POST = async (req) => {
   try {
@@ -11,15 +10,11 @@ export const POST = async (req) => {
     const hashedPassword = bcrypt.hashSync(body.password, salt);
     delete body.password;
 
-    const params = {
-      TableName: "AdminUsers",
-      Item: {
-        ...body,
-        password: hashedPassword,
-      },
-    };
-
-    await ddbDocClient.send(new PutCommand(params));
+    const collection = db.collection("AdminUsers");
+    await collection.insertOne({
+      ...body,
+      password: hashedPassword, 
+    });
 
     return NextResponse.json(
       { message: "successfully signed up" },
