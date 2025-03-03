@@ -6,8 +6,7 @@ async function fetchPrescriptions() {
     const response = await fetch(`${process.env.API_URL}/prescription`);
     if (!response.ok) throw new Error("Failed to fetch orders");
 
-    const result = await response.json();
-    const orders = result.Count > 0 ? result.Items : [];
+    const orders = await response.json();
     return { orders, error: null };
   } catch (error) {
     return { orders: [], error: error.message };

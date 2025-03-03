@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function Prescription({ initialOrders, error }) {
   const sortedOrders = [...initialOrders].sort(
@@ -18,8 +18,6 @@ export default function Prescription({ initialOrders, error }) {
   const [showRequestInfoModal, setShowRequestInfoModal] = useState(false);
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [sameFileForAll, setSameFileForAll] = useState(false);
-  const [sameFile, setSameFile] = useState(null); // To store the file for all items
 
 
   const [emailDetails, setEmailDetails] = useState({
@@ -46,7 +44,7 @@ export default function Prescription({ initialOrders, error }) {
   
         // Update the orders state with the new prescription file for all matching items
         const updatedOrders = orders.map((order) => {
-          if (order.id === orderId) {
+          if (order._id === orderId) {
             const updatedItems = order.items.map((item) =>
               item.prescription_required && !item.prescription_file
                 ? { ...item, prescription_file: fileUrl }
@@ -75,14 +73,14 @@ export default function Prescription({ initialOrders, error }) {
 
   const handleViewMore = (order) => {
     setOrderDetails(order);
-    setHighlightedOrderId(order.id);
+    setHighlightedOrderId(order._id);
     setShowOrderModal(true);
   };
   console.log("Order Status:", orderDetails);
   console.log("Info Requested:", infoRequestedOrders);
 
   const approvalHandler = async (id) => {
-    const selectedOrder = orders.find((order) => order.id === id);
+    const selectedOrder = orders.find((order) => order._id === id);
 
     if (selectedOrder.prescription_status !== "Received") {
       alert("You cannot approve the order until the prescription is uploaded and status is changed to 'Received'.");
@@ -94,7 +92,7 @@ export default function Prescription({ initialOrders, error }) {
       body: JSON.stringify({ status: "Completed" }),
     });
     const updatedOrders = orders.map((order) =>
-      order.id === id ? { ...order, status: "Completed" } : order
+      order._id === id ? { ...order, status: "Completed" } : order
     );
     setOrders(updatedOrders);
     setOrderDetails(null);
@@ -113,7 +111,7 @@ export default function Prescription({ initialOrders, error }) {
       }),
     });
     const updatedOrders = orders.map((order) =>
-      order.id === selectedOrder.id
+      order._id === selectedOrder._id
         ? {
           ...order,
           status: "Cancelled",
@@ -127,7 +125,7 @@ export default function Prescription({ initialOrders, error }) {
     setOrders(updatedOrders);
     setInfoRequestedOrders((prev) => ({
       ...prev,
-      [selectedOrder.id]: emailDetails.message,
+      [selectedOrder._id]: emailDetails.message,
     }));
     setShowCancelModal(false);
     setOrderDetails(null);
@@ -155,7 +153,8 @@ export default function Prescription({ initialOrders, error }) {
       const res = await fetch(`/api/prescription?ostat=${ostat}`);
       result = await res.json()
     }
-    result.Count > 0 ? setFilteredOrders(result.Items) : setFilteredOrders([]);
+    // result.Count > 0 ? setFilteredOrders(result.Items) : setFilteredOrders([]);
+    setFilteredOrders(result)
     setPrescriptionFilter(pstat);
     setStatus(ostat);
     setOrderDetails(null);
@@ -251,11 +250,11 @@ export default function Prescription({ initialOrders, error }) {
                   {filteredOrders.length > 0 ? (
                     filteredOrders.map((order) => (
                       <tr
-                        key={order.id}
-                        className={`cursor-pointer border-b ${order.id === highlightedOrderId ? "bg-cyan-200/80" : ""
+                        key={order._id}
+                        className={`cursor-pointer border-b ${order._id === highlightedOrderId ? "bg-cyan-200/80" : ""
                           }`}
                       >
-                        <td className="py-2 px-4 text-center border">{order.id}</td>
+                        <td className="py-2 px-4 text-center border">{order._id}</td>
                         {/* <td className="py-2 px-4 text-center">
                           {order.customer_name}
                         </td> */}
@@ -367,7 +366,7 @@ export default function Prescription({ initialOrders, error }) {
           className="bg-blue-500 text-white px-4 py-2 rounded"
           onClick={async () => {
             if (uploadedFile) {
-              await uploadPrescriptionForAll(selectedOrder.id, uploadedFile);
+              await uploadPrescriptionForAll(selectedOrder._id, uploadedFile);
               setShowFileUploadModal(false);
             } else {
               alert("Please select a file to upload.");
@@ -397,7 +396,7 @@ export default function Prescription({ initialOrders, error }) {
                       <div className="flex">
                         <div className="mr-8">
                           <p>
-                            <strong>Order ID:</strong> {orderDetails.id}
+                            <strong>Order ID:</strong> {orderDetails._id}
                           </p>
                           <p>
                             <strong>Customer Name:</strong>{" "}
@@ -466,14 +465,14 @@ export default function Prescription({ initialOrders, error }) {
                         )}
 
                       {/* Show Requested Info if Set */}
-                      {infoRequestedOrders[orderDetails.id] && (
+                      {infoRequestedOrders[orderDetails._id] && (
                         <div className="mt-4 bg-yellow-100 p-4 rounded">
                           <h3 className="text-lg font-bold text-yellow-600 mb-2">
                             Requested Information
                           </h3>
                           <p>
                             <strong>Message:</strong>{" "}
-                            {infoRequestedOrders[orderDetails.id]}
+                            {infoRequestedOrders[orderDetails._id]}
                           </p>
                         </div>
                       )}
@@ -581,7 +580,7 @@ export default function Prescription({ initialOrders, error }) {
                               className={`px-4 py-2 rounded ${orderDetails.prescription_status === "Received" ? "bg-green-500 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
                                 }`}
                               disabled={orderDetails.prescription_status !== "Received"}
-                              onClick={() => approvalHandler(orderDetails.id)}
+                              onClick={() => approvalHandler(orderDetails._id)}
                             >
                               Approve
                             </button>
@@ -621,7 +620,7 @@ export default function Prescription({ initialOrders, error }) {
                   </button>
                   <button
                     className="bg-green-500 text-white px-4 py-2 rounded"
-                    onClick={() => approvalHandler(selectedOrder.id)}
+                    onClick={() => approvalHandler(selectedOrder._id)}
                   >
                     Approve
                   </button>
@@ -697,7 +696,7 @@ export default function Prescription({ initialOrders, error }) {
                     className="bg-pink-500 text-white px-4 py-2 rounded"
                     onClick={() =>
                       cancelHandler(
-                        selectedOrder.id,
+                        selectedOrder._id,
                         { sub: emailDetails.reason, msg: emailDetails.message },
                         emailDetails.to,
                         "Cancelled"
@@ -752,7 +751,7 @@ export default function Prescription({ initialOrders, error }) {
                     onClick={() => {
                       setInfoRequestedOrders((prev) => ({
                         ...prev,
-                        [orderDetails.id]: emailDetails.message,
+                        [orderDetails._id]: emailDetails.message,
                       }));
                       setShowRequestInfoModal(false);
                     }}

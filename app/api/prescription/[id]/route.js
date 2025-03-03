@@ -1,6 +1,7 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import db from "@/lib/mongodb"
 import { NextResponse } from "next/server";
+import { ObjectId } from "mongodb";
 
 // Initialize AWS clients
 const s3Client = new S3Client();
@@ -31,10 +32,10 @@ export async function PUT(req, ctx) {
     await s3Client.send(new PutObjectCommand(uploadParams));
     const fileUrl = `https://s3.${process.env.AWS_REGION}.amazonaws.com/${BUCKET_NAME}/${fileName}`;
 
-    const ordersCollection = db.collection("Orders");
-
+    const ordersCollection = db.collection("Order");
     // Retrieve the existing order data
-    const order = await ordersCollection.findOne({ _id: orderId });
+    const order = await ordersCollection.findOne({ _id: new ObjectId(orderId) });
+    console.log("orderId", orderId, order)
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
@@ -48,8 +49,8 @@ export async function PUT(req, ctx) {
     );
 
     // Update MongoDB record with file URL
-    await ordersCollection.findOneAndUpdate(
-      { _id: orderId },
+    const updateResponse = await ordersCollection.updateOne(
+      { _id: new ObjectId(orderId) },
       {
         $set: {
           items: updatedItems,
@@ -62,7 +63,7 @@ export async function PUT(req, ctx) {
     return NextResponse.json({
       message: "File uploaded and order updated successfully",
       fileUrl,
-      updatedAttributes: updateResponse.Attributes,
+      updatedAttributes: updateResponse,
     });
   } catch (error) {
     console.error("Error:", error);

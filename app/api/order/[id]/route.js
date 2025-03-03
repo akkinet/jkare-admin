@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import sendMail from '@/config/nodeMailer';
 import db from "@/lib/mongodb"
+import { ObjectId } from 'mongodb';
 
 export const PUT = async (req, ctx) => {
   try {
@@ -8,7 +9,7 @@ export const PUT = async (req, ctx) => {
     const { status, remark, email } = await req.json();
 
     // Connect to MongoDB
-    const ordersCollection = db.collection('Orders');
+    const ordersCollection = db.collection('Order');
 
     // Prepare the update object
     const update = {
@@ -28,7 +29,7 @@ export const PUT = async (req, ctx) => {
 
     // Update the order in MongoDB
     await ordersCollection.findOneAndUpdate(
-      { _id: id }, // Filter by order ID
+      { _id: new ObjectId(id) }, // Filter by order ID
       update, // Update object
       { returnDocument: 'after' } // Return the updated document
     );
