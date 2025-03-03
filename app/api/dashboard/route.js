@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import db from "@/lib/mongodb"
+import { NextResponse } from "next/server";
+import db from "@/lib/mongodb";
 
 export const GET = async (req, ctx) => {
   try {
@@ -15,13 +15,13 @@ export const GET = async (req, ctx) => {
     }
 
     // Connect to MongoDB
-    const ordersCollection = db.collection('Orders');
+    const ordersCollection = db.collection("Order");
 
     // Match orders for the specified year
     const matchStage = {
       $match: {
         order_date: {
-          $regex: `^${year}`, // Match orders where order_date starts with the specified year
+          $regex: year, // Match orders where order_date starts with the specified year
         },
       },
     };
@@ -67,10 +67,22 @@ export const GET = async (req, ctx) => {
     });
 
     // Calculate total metrics
-    const totalOrders = stats.reduce((sum, monthData) => sum + monthData.totalOrders, 0);
-    const completedOrders = stats.reduce((sum, monthData) => sum + monthData.completedOrders, 0);
-    const pendingPrescription = stats.reduce((sum, monthData) => sum + monthData.pendingPrescription, 0);
-    const totalSales = stats.reduce((sum, monthData) => sum + monthData.totalSales, 0);
+    const totalOrders = stats.reduce(
+      (sum, monthData) => sum + monthData.totalOrders,
+      0
+    );
+    const completedOrders = stats.reduce(
+      (sum, monthData) => sum + monthData.completedOrders,
+      0
+    );
+    const pendingPrescription = stats.reduce(
+      (sum, monthData) => sum + monthData.pendingPrescription,
+      0
+    );
+    const totalSales = stats.reduce(
+      (sum, monthData) => sum + monthData.totalSales,
+      0
+    );
 
     return NextResponse.json(
       {

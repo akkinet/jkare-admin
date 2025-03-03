@@ -1,4 +1,5 @@
 "use client";
+// import sendMail from "@/config/nodeMailer";
 import { useState } from "react";
 
 export default function Prescription({ initialOrders, error }) {
@@ -160,6 +161,21 @@ export default function Prescription({ initialOrders, error }) {
     setOrderDetails(null);
     setHighlightedOrderId(null);
   };
+
+  const reqInfoHandler = async (order, user) => {
+    try{
+      setInfoRequestedOrders((prev) => ({
+        ...prev,
+        [order._id]: user.message,
+      }));
+      const html = `<body><p>${user.message}</p> </body>`
+      // await sendMail(order.customer_email, "Request more info", html);
+      setShowRequestInfoModal(false);
+    }catch(err){
+      console.error("error: ", err);
+      alert("something went wrong")
+    }
+  }
 
   return (
     <div className="p-4 bg-[#f4f6f8] h-[89vh]">
@@ -748,13 +764,7 @@ export default function Prescription({ initialOrders, error }) {
                   </button>
                   <button
                     className="bg-yellow-500 text-white px-4 py-2 rounded"
-                    onClick={() => {
-                      setInfoRequestedOrders((prev) => ({
-                        ...prev,
-                        [orderDetails._id]: emailDetails.message,
-                      }));
-                      setShowRequestInfoModal(false);
-                    }}
+                    onClick={reqInfoHandler(orderDetails, emailDetails)}
                   >
                     Send
                   </button>
