@@ -9,7 +9,6 @@ const Orders = ({ initialOrders }) => {
   
   const [orders] = useState(sortedOrders);
   const [filteredOrders, setFilteredOrders] = useState(sortedOrders);
-
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
