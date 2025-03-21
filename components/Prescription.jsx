@@ -20,7 +20,6 @@ export default function Prescription({ initialOrders, error }) {
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
 
-
   const [emailDetails, setEmailDetails] = useState({
     to: "",
     message: "",
@@ -32,17 +31,16 @@ export default function Prescription({ initialOrders, error }) {
   const uploadPrescriptionForAll = async (orderId, file) => {
     const formData = new FormData();
     formData.append("file", file);
-  
+
     try {
-      // PUT Request to upload file to database
       const response = await fetch(`http://localhost:3000/api/prescription/${orderId}`, {
         method: "PUT",
         body: formData,
       });
-  
+
       if (response.ok) {
         const { fileUrl } = await response.json();
-  
+
         // Update the orders state with the new prescription file for all matching items
         const updatedOrders = orders.map((order) => {
           if (order._id === orderId) {
@@ -51,12 +49,12 @@ export default function Prescription({ initialOrders, error }) {
                 ? { ...item, prescription_file: fileUrl }
                 : item
             );
-  
+
             return { ...order, items: updatedItems, prescription_status: "Received" };
           }
           return order;
         });
-  
+
         setOrders(updatedOrders);
         setFilteredOrders(updatedOrders);
         alert("Prescription uploaded and updated for all applicable items.");
@@ -68,23 +66,19 @@ export default function Prescription({ initialOrders, error }) {
       alert("An error occurred while uploading the prescription.");
     }
   };
-  
-
-
 
   const handleViewMore = (order) => {
     setOrderDetails(order);
     setHighlightedOrderId(order._id);
     setShowOrderModal(true);
   };
-  console.log("Order Status:", orderDetails);
-  console.log("Info Requested:", infoRequestedOrders);
 
   const approvalHandler = async (id) => {
     const selectedOrder = orders.find((order) => order._id === id);
 
+    // Check if prescription is actually received
     if (selectedOrder.prescription_status !== "Received") {
-      alert("You cannot approve the order until the prescription is uploaded and status is changed to 'Received'.");
+      alert("You cannot approve until the prescription is uploaded (status 'Received').");
       return;
     }
 
@@ -100,7 +94,6 @@ export default function Prescription({ initialOrders, error }) {
     setShowApproveModal(false);
     setShowOrderModal(false);
   };
-
 
   const cancelHandler = async (id, remark, email, status) => {
     await fetch(`/api/order/${id}`, {
@@ -146,16 +139,17 @@ export default function Prescription({ initialOrders, error }) {
 
   const filterHandler = async (ostat, pstat) => {
     let result;
-    if (pstat != "both") {
-      const res = await fetch(`/api/prescription?ostat=${ostat}&pstat=${prescriptionFilter == "yes" ? "Received" : "Pending"}`);
-      result = await res.json()
-    }
-    else {
+    if (pstat !== "both") {
+      const res = await fetch(
+        `/api/prescription?ostat=${ostat}&pstat=${prescriptionFilter === "yes" ? "Received" : "Pending"
+        }`
+      );
+      result = await res.json();
+    } else {
       const res = await fetch(`/api/prescription?ostat=${ostat}`);
-      result = await res.json()
+      result = await res.json();
     }
-    // result.Count > 0 ? setFilteredOrders(result.Items) : setFilteredOrders([]);
-    setFilteredOrders(result)
+    setFilteredOrders(result);
     setPrescriptionFilter(pstat);
     setStatus(ostat);
     setOrderDetails(null);
@@ -163,23 +157,23 @@ export default function Prescription({ initialOrders, error }) {
   };
 
   const reqInfoHandler = async (order, user) => {
-    try{
+    try {
       setInfoRequestedOrders((prev) => ({
         ...prev,
         [order._id]: user.message,
       }));
-      const html = `<body><p>${user.message}</p> </body>`
-      // await sendMail(order.customer_email, "Request more info", html);
+      const html = `<body><p>${user.message}</p></body>`;
+      await sendMail(order.customer_email, "Request more info", html);
       setShowRequestInfoModal(false);
-    }catch(err){
+    } catch (err) {
       console.error("error: ", err);
-      alert("something went wrong")
+      alert("something went wrong");
     }
-  }
+  };
 
   return (
     <div className="p-4 bg-[#f4f6f8] h-[89vh]">
-      <h1 className="text-center text-4xl font-bold text-customBlue mb-6 ">
+      <h1 className="text-center text-4xl font-bold text-customBlue mb-6">
         Prescription Approvals
       </h1>
 
@@ -199,9 +193,7 @@ export default function Prescription({ initialOrders, error }) {
             <div className="flex space-x-4">
               <div className="flex space-x-2">
                 <button
-                  className={`px-4 py-2 ${status === "Pending"
-                    ? "bg-pink-500 text-white"
-                    : "bg-gray-200"
+                  className={`px-4 py-2 ${status === "Pending" ? "bg-pink-500 text-white" : "bg-gray-200"
                     } rounded`}
                   onClick={() => filterHandler("Pending", prescriptionFilter)}
                 >
@@ -209,8 +201,8 @@ export default function Prescription({ initialOrders, error }) {
                 </button>
                 <button
                   className={`px-4 py-2 ${status === "Completed"
-                    ? "bg-pink-500 text-white"
-                    : "bg-gray-200"
+                      ? "bg-pink-500 text-white"
+                      : "bg-gray-200"
                     } rounded`}
                   onClick={() => filterHandler("Completed", prescriptionFilter)}
                 >
@@ -218,8 +210,8 @@ export default function Prescription({ initialOrders, error }) {
                 </button>
                 <button
                   className={`px-4 py-2 ${status === "Cancelled"
-                    ? "bg-pink-500 text-white"
-                    : "bg-gray-200"
+                      ? "bg-pink-500 text-white"
+                      : "bg-gray-200"
                     } rounded`}
                   onClick={() => filterHandler("Cancelled", prescriptionFilter)}
                 >
@@ -244,21 +236,22 @@ export default function Prescription({ initialOrders, error }) {
             </div>
           </div>
 
-          <div className="overflow-x-auto  mt-4 text-sm ">
+          <div className="overflow-x-auto mt-4 text-sm">
             <div className="w-full overflow-auto max-h-96">
               <table className="bg-white border border-gray-300 shadow-md w-full">
                 <thead className="sticky top-0">
-                  <tr className="bg-gray-200 ">
+                  <tr className="bg-gray-200">
                     <th className="py-2 px-4 text-center border">Order ID</th>
-                    {/* <th className="py-2 px-4 text-center">Customer Name</th> */}
                     <th className="py-2 px-4 text-center border">Customer Email</th>
                     <th className="py-2 px-4 text-center border">Phone Number</th>
                     <th className="py-2 px-4 text-center border">Order Date</th>
                     <th className="py-2 px-4 text-center border">Order Value</th>
-                    <th className="py-2 px-4 text-center border">Prescription Status</th>
+                    <th className="py-2 px-4 text-center border">
+                      Prescription Status
+                    </th>
                     <th className="py-2 px-4 text-center border">Detail</th>
                     {status === "Pending" && (
-                      <th className="py-2 px-4 text-center border ">Action</th>
+                      <th className="py-2 px-4 text-center border">Action</th>
                     )}
                   </tr>
                 </thead>
@@ -271,9 +264,6 @@ export default function Prescription({ initialOrders, error }) {
                           }`}
                       >
                         <td className="py-2 px-4 text-center border">{order._id}</td>
-                        {/* <td className="py-2 px-4 text-center">
-                          {order.customer_name}
-                        </td> */}
                         <td className="py-2 px-4 text-left border">
                           {order.customer_email}
                         </td>
@@ -307,7 +297,6 @@ export default function Prescription({ initialOrders, error }) {
                           )}
                         </td>
 
-
                         <td className="py-2 px-4 text-center border">
                           <button
                             className="bg-pink-500 text-white px-3 py-1 rounded"
@@ -319,7 +308,9 @@ export default function Prescription({ initialOrders, error }) {
                         {status === "Pending" && (
                           <td className="py-2 px-4 flex justify-around space-x-2">
                             <button
-                              className={`px-4 py-2 rounded ${order.prescription_status === "Received" ? "bg-green-500 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                              className={`px-4 py-2 rounded ${order.prescription_status === "Received"
+                                  ? "bg-green-500 text-white"
+                                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
                                 }`}
                               disabled={order.prescription_status !== "Received"}
                               onClick={() => {
@@ -331,8 +322,6 @@ export default function Prescription({ initialOrders, error }) {
                             >
                               Approve
                             </button>
-
-
 
                             <button
                               className="bg-red-500 text-white px-3 py-1 rounded"
@@ -357,52 +346,47 @@ export default function Prescription({ initialOrders, error }) {
           </div>
 
           {showFileUploadModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-    <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
-      <h2 className="text-xl font-bold mb-4">Upload Prescription</h2>
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+              <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
+                <h2 className="text-xl font-bold mb-4">Upload Prescription</h2>
+                <label className="block mb-4">
+                  <span className="font-bold">Prescription File:</span>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => setUploadedFile(e.target.files[0])}
+                    className="border border-gray-300 rounded w-full px-2 py-1"
+                  />
+                </label>
 
-      <label className="block mb-4">
-        <span className="font-bold">Prescription File:</span>
-        <input
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
-          onChange={(e) => setUploadedFile(e.target.files[0])}
-          className="border border-gray-300 rounded w-full px-2 py-1"
-        />
-      </label>
-
-      <div className="flex justify-between">
-        <button
-          className="bg-gray-500 text-white px-4 py-2 rounded"
-          onClick={() => setShowFileUploadModal(false)}
-        >
-          Cancel
-        </button>
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-          onClick={async () => {
-            if (uploadedFile) {
-              await uploadPrescriptionForAll(selectedOrder._id, uploadedFile);
-              setShowFileUploadModal(false);
-            } else {
-              alert("Please select a file to upload.");
-            }
-          }}
-        >
-          Upload & Save
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-
-
+                <div className="flex justify-between">
+                  <button
+                    className="bg-gray-500 text-white px-4 py-2 rounded"
+                    onClick={() => setShowFileUploadModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                    onClick={async () => {
+                      if (uploadedFile) {
+                        await uploadPrescriptionForAll(selectedOrder._id, uploadedFile);
+                        setShowFileUploadModal(false);
+                      } else {
+                        alert("Please select a file to upload.");
+                      }
+                    }}
+                  >
+                    Upload & Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {showOrderModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-              <div className="bg-white p-6 rounded shadow-md w-[90%] lg: max-w-7xl">
+              <div className="bg-white p-6 rounded shadow-md w-[90%] lg:max-w-7xl">
                 <h2 className="text-xl font-bold mb-2 border-b-2 border-gray-300">
                   Order Details
                 </h2>
@@ -427,8 +411,7 @@ export default function Prescription({ initialOrders, error }) {
                             {orderDetails.customer_phone}
                           </p>
                           <p>
-                            <strong>Order Date:</strong>{" "}
-                            {orderDetails.order_date}
+                            <strong>Order Date:</strong> {orderDetails.order_date}
                           </p>
                         </div>
                         <div>
@@ -440,12 +423,11 @@ export default function Prescription({ initialOrders, error }) {
                             <strong>Shipping Address:</strong>{" "}
                             {`${orderDetails.shipping_address.line1}, ${orderDetails.shipping_address.city}, ${orderDetails.shipping_address.state}, ${orderDetails.shipping_address.postal_code}, ${orderDetails.shipping_address.country}`}
                           </p>
-
-                          {/* Insurance Section */}
-
                           <p>
                             <strong>Insurance Received:</strong>{" "}
-                            {orderDetails.insurance_pdf ? orderDetails.insurance_company : "No"}
+                            {orderDetails.insurance_pdf
+                              ? orderDetails.insurance_company
+                              : "No"}
                           </p>
                           {orderDetails.insurance_pdf && (
                             <p className="mt-4">
@@ -462,7 +444,6 @@ export default function Prescription({ initialOrders, error }) {
                         </div>
                       </div>
 
-                      {/* Show Cancellation Details if Order is Cancelled */}
                       {orderDetails.status === "Cancelled" &&
                         orderDetails.cancellationDetails && (
                           <div className="mt-4 bg-red-100 p-4 rounded">
@@ -480,7 +461,6 @@ export default function Prescription({ initialOrders, error }) {
                           </div>
                         )}
 
-                      {/* Show Requested Info if Set */}
                       {infoRequestedOrders[orderDetails._id] && (
                         <div className="mt-4 bg-yellow-100 p-4 rounded">
                           <h3 className="text-lg font-bold text-yellow-600 mb-2">
@@ -494,11 +474,8 @@ export default function Prescription({ initialOrders, error }) {
                       )}
                     </div>
 
-                    {/* Product Details Section */}
                     <div className="border-t-2 border-gray-300 mt-4">
-                      <h3 className="text-lg font-bold mb-2">
-                        Product Details
-                      </h3>
+                      <h3 className="text-lg font-bold mb-2">Product Details</h3>
                       <div className="overflow-y-auto max-h-72">
                         <table className="min-w-full bg-white table-auto">
                           <thead className="sticky top-0 z-50">
@@ -522,28 +499,24 @@ export default function Prescription({ initialOrders, error }) {
                                 <td className="py-1 px-4 text-center border border-gray-300">
                                   {item.product_id}
                                 </td>
-                                <td className="py-1 px-4 text-center border border-gray-300  ">
+                                <td className="py-1 px-4 text-center border border-gray-300">
                                   <img
                                     src={item.image}
                                     alt={item.product_name}
                                     className="h-12 w-12 object-cover"
                                   />
                                 </td>
-                                <td className="py-1 px-4 text-center border border-gray-300 ">
+                                <td className="py-1 px-4 text-center border border-gray-300">
                                   {item.product_name}
                                 </td>
                                 <td className="py-1 px-4 text-center border border-gray-300 group relative">
-                                  {/* Truncated Text */}
                                   <span className="line-clamp-2">
                                     {item.description}
                                   </span>
-
-                                  {/* Tooltip on Hover */}
                                   <div className="absolute left-3/4 transform top-0 mt-2 z-10 w-96 bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded shadow-lg hidden group-hover:block">
                                     {item.description}
                                   </div>
                                 </td>
-
                                 <td className="py-1 px-4 text-center border border-gray-300">
                                   X {item.quantity}
                                 </td>
@@ -554,11 +527,13 @@ export default function Prescription({ initialOrders, error }) {
                                   {item.prescription_required ? (
                                     item.prescription_file ? (
                                       <div className="flex flex-col items-center space-y-2">
-                                        {/* Display a truncated file name */}
                                         <p className="text-gray-600 text-sm">
-                                          {item.prescription_file.split('/').pop().slice(0, 12)}...
+                                          {item.prescription_file
+                                            .split("/")
+                                            .pop()
+                                            .slice(0, 12)}
+                                          ...
                                         </p>
-                                        {/* Download Button */}
                                         <a
                                           href={item.prescription_file}
                                           download
@@ -568,13 +543,14 @@ export default function Prescription({ initialOrders, error }) {
                                         </a>
                                       </div>
                                     ) : (
-                                      <span className="text-red-500">Required</span>
+                                      <span className="text-red-500">
+                                        Required
+                                      </span>
                                     )
                                   ) : (
                                     "Not Required"
                                   )}
                                 </td>
-
                               </tr>
                             ))}
                           </tbody>
@@ -589,32 +565,32 @@ export default function Prescription({ initialOrders, error }) {
                       >
                         Close
                       </button>
-                      {orderDetails.order_status === "Pending" &&
-                        (
-                          <div className="flex space-x-4">
-                            <button
-                              className={`px-4 py-2 rounded ${orderDetails.prescription_status === "Received" ? "bg-green-500 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                }`}
-                              disabled={orderDetails.prescription_status !== "Received"}
-                              onClick={() => approvalHandler(orderDetails._id)}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              className="bg-yellow-500 text-white px-4 py-2 rounded"
-                              onClick={() => setShowRequestInfoModal(true)}
-                            >
-                              Request More Info
-                            </button>
-                            <button
-                              className="bg-red-500 text-white px-4 py-2 rounded"
-                              onClick={() => handleCancel(orderDetails)}
-                            >
-                              Cancel Order
-                            </button>
-                          </div>
-                        )}
-
+                      {orderDetails.order_status === "Pending" && (
+                        <div className="flex space-x-4">
+                          <button
+                            className={`px-4 py-2 rounded ${orderDetails.prescription_status === "Received"
+                                ? "bg-green-500 text-white"
+                                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                              }`}
+                            disabled={orderDetails.prescription_status !== "Received"}
+                            onClick={() => approvalHandler(orderDetails._id)}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            className="bg-yellow-500 text-white px-4 py-2 rounded"
+                            onClick={() => setShowRequestInfoModal(true)}
+                          >
+                            Request More Info
+                          </button>
+                          <button
+                            className="bg-red-500 text-white px-4 py-2 rounded"
+                            onClick={() => handleCancel(orderDetails)}
+                          >
+                            Cancel Order
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
@@ -676,9 +652,7 @@ export default function Prescription({ initialOrders, error }) {
                     }
                     className="border border-gray-300 rounded w-full px-2 py-1"
                   >
-                    <option value="unable_to_read_order">
-                      Unable to read order
-                    </option>
+                    <option value="unable_to_read_order">Unable to read order</option>
                     <option value="prescription_not_received">
                       Prescription not received
                     </option>
@@ -726,21 +700,52 @@ export default function Prescription({ initialOrders, error }) {
             </div>
           )}
 
+          {/** MODAL FOR REQUEST MORE INFO */}
           {showRequestInfoModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
               <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">
-                  Request More Information
-                </h2>
+                <h2 className="text-xl font-bold mb-4">Request More Information</h2>
+
+                {/* "To" field */}
                 <label className="block mb-2">
                   <span className="font-bold">To:</span>
                   <input
                     type="email"
-                    value={orderDetails.customer_email}
+                    value={orderDetails?.customer_email ?? ""}
                     readOnly
                     className="border border-gray-300 rounded w-full px-2 py-1"
                   />
                 </label>
+
+                {/* Subject dropdown */}
+                <label className="block mb-2">
+                  <span className="font-bold">Subject:</span>
+                  <select
+                    value={emailDetails.subject}
+                    onChange={(e) =>
+                      setEmailDetails((prev) => ({
+                        ...prev,
+                        subject: e.target.value,
+                      }))
+                    }
+                    className="border border-gray-300 rounded w-full px-2 py-1"
+                  >
+                    <option value="prescription file is not clear">
+                      please attach the prescription file of the product 
+                    </option>
+                    <option value="prescription file is not clear">
+                      prescription file is not clear
+                    </option>
+                    <option value="the prescription contain inappropriate content">
+                      the prescription contain inappropriate content
+                    </option>
+                    <option value="can't get full details of prescription">
+                      can't get full details of prescription
+                    </option>
+                  </select>
+                </label>
+
+                {/* Message textarea */}
                 <label className="block mb-4">
                   <span className="font-bold">Message:</span>
                   <textarea
@@ -755,6 +760,7 @@ export default function Prescription({ initialOrders, error }) {
                     rows="4"
                   />
                 </label>
+
                 <div className="flex justify-between">
                   <button
                     className="bg-gray-500 text-white px-4 py-2 rounded"
@@ -764,7 +770,7 @@ export default function Prescription({ initialOrders, error }) {
                   </button>
                   <button
                     className="bg-yellow-500 text-white px-4 py-2 rounded"
-                    onClick={reqInfoHandler(orderDetails, emailDetails)}
+                    onClick={() => reqInfoHandler(orderDetails, emailDetails)}
                   >
                     Send
                   </button>
