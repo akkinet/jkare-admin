@@ -25,7 +25,7 @@ function Layout({ children }) {
   return (
     <div className="flex">
       <Sidebar />
-      <div className="flex-1 pl-2">
+      <div className="flex-1 pl-2 w-[80%]">
         <Navbar />
         {children}
       </div>

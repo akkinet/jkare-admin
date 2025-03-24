@@ -13,7 +13,7 @@ const ProductTable = ({ data }) => {
     prodID: "",
     name: "",
     quantity: 0,
-  }); // Track current editable stock value
+  });
 
   const [isEditingPrice, setIsEditingPrice] = useState(false);
   const [editPriceValue, setEditPriceValue] = useState({
@@ -52,10 +52,6 @@ const ProductTable = ({ data }) => {
       discount: 0,
     });
   };
-
-
-
-
   // Handler for searching products
   const searchHandler = async (query) => {
     const term = isNaN(query) ? query : "";
@@ -137,8 +133,6 @@ const ProductTable = ({ data }) => {
       price: 0,
     });
   };
-
-
   const statHandler = async (id, bool) => {
     await fetch(`/api/product/${id}`, {
       method: "PUT",
@@ -168,17 +162,9 @@ const ProductTable = ({ data }) => {
         />
       ) : (
         // Show the product table when showForm is false
-        <div className="">
-          <div className="p-6 bg-gray-100 ">
-            <div className="max-w-6xl mx-auto relative">
+        <>
               <h1 className="text-center text-4xl font-bold text-customBlue ">
                 All  Products
-              </h1>
-              <h1 className="text-2xl font-bold border-b border-black">
-                Product Table{" "}
-                <span className="text-lg font-medium">
-                  (Total Products: {products.length})
-                </span>
               </h1>
               {/* Search Bar and Product Count */}
               <div className=" flex justify-between items-center">
@@ -189,6 +175,9 @@ const ProductTable = ({ data }) => {
                   value={searchTerm}
                   onChange={(e) => searchHandler(e.target.value)}
                 />
+                 <span className="text-lg font-medium">
+                  Total Products: {products.length}
+                </span>
                 {/* Add Product Button */}
                 <div className="py-4  flex justify-start">
                   <button
@@ -217,7 +206,7 @@ const ProductTable = ({ data }) => {
               </div>
 
               {/* Table */}
-              <div className="overflow-x-auto max-h-[30vw] relative">
+              <div className="overflow-x-auto h-[70vh]">
                 <table className="table-auto w-full border-collapse border border-gray-300">
                   <thead className="bg-gray-200 sticky top-0 z-40">
                     <tr>
@@ -480,8 +469,7 @@ const ProductTable = ({ data }) => {
                   </tbody>
                 </table>
               </div>
-            </div>
-          </div>
+            {/* </div> */}
           {isEditingStock && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
               <div className="bg-white w-80 p-6 rounded-lg shadow-lg transform transition-all duration-300 scale-100">
@@ -639,9 +627,7 @@ const ProductTable = ({ data }) => {
               </div>
             </div>
           )}
-
-
-        </div>
+        </>
       )}
     </>
   );

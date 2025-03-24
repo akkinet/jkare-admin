@@ -1,6 +1,5 @@
 import Prescription from "@/components/Prescription";
 export const dynamic = 'force-dynamic';
-
 async function fetchPrescriptions() {
   try {
     const response = await fetch(`${process.env.API_URL}/prescription`);

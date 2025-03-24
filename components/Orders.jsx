@@ -6,7 +6,7 @@ const Orders = ({ initialOrders }) => {
   const sortedOrders = [...initialOrders].sort(
     (a, b) => new Date(b.order_date) - new Date(a.order_date)
   );
-  
+
   const [orders] = useState(sortedOrders);
   const [filteredOrders, setFilteredOrders] = useState(sortedOrders);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -21,11 +21,13 @@ const Orders = ({ initialOrders }) => {
       setFilteredOrders(orders);
     } else {
       const filtered = orders.filter((order) =>
-        order.id.toLowerCase().includes(query.toLowerCase())
+        order._id.toLowerCase().includes(query.toLowerCase()) ||
+        order.customer_email.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredOrders(filtered);
     }
   };
+
 
   const openModal = (order) => {
     setSelectedOrder(order);
@@ -75,7 +77,7 @@ const Orders = ({ initialOrders }) => {
                 <td className="px-6 py-2 text-sm text-center">{order.order_date}</td>
                 <td className="px-6 py-2 text-sm text-center">
                   <span
-                    className={`inline-block px-4 py-2 w-24 text-center rounded text-white font-semibold ${order.order_status === 'Completed'
+                    className={`inline-block px-4 py-2  text-center rounded text-white font-semibold ${order.order_status === 'Completed'
                       ? 'bg-green-500'
                       : order.order_status === 'Pending'
                         ? 'bg-yellow-500'
@@ -84,8 +86,9 @@ const Orders = ({ initialOrders }) => {
                           : 'bg-gray-500'
                       }`}
                   >
-                    {order.order_status}
+                    {order.order_status === 'Completed' ? 'Ready to Ship' : order.order_status}
                   </span>
+
                 </td>
 
 
@@ -115,12 +118,12 @@ const Orders = ({ initialOrders }) => {
             {/* Two-Column Layout for Order Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-b-2 border-customBlue pb-2">
               <div>
-                <p><strong>Order ID:</strong> {selectedOrder.id}</p>
+                <p><strong>Order ID:</strong> {selectedOrder._id}</p>
                 <p><strong>Customer Name:</strong> {selectedOrder.customer_name}</p>
                 <p><strong>Customer Email:</strong> {selectedOrder.customer_email}</p>
                 <p><strong>Customer Phone:</strong> {selectedOrder.customer_phone}</p>
                 <p><strong>Order Date:</strong> {selectedOrder.order_date}</p>
-                <p><strong>Order Status:</strong> {selectedOrder.order_status}</p>
+                <p><strong>Order Status:</strong> {selectedOrder.order_status === 'Completed' ? 'Ready to Ship ✅' : selectedOrder.order_status}</p>
                 <p>
                   <strong>Prescription Status:</strong>{" "}
                   {selectedOrder.prescription_status
@@ -129,8 +132,6 @@ const Orders = ({ initialOrders }) => {
                 </p>
               </div>
               <div>
-            
-
                 <p>
                   <strong>Shipping Address:</strong> {selectedOrder.shipping_address.line1},{' '}
                   {selectedOrder.shipping_address.city}, {selectedOrder.shipping_address.state},{' '}
@@ -198,22 +199,30 @@ const Orders = ({ initialOrders }) => {
                       <td className="px-4 py-2 border text-left">
                         ${(item.price * item.quantity).toFixed(2)}
                       </td>
-                      <td className="px-4 py-2 border text-center">
-                        {item.prescription_required && item.prescription_file ? (
-                          <div className="flex flex-col items-center space-y-2">
-                            {/* File Name (first 6-8 letters) */}
-                            <p className="text-gray-600 text-sm">
-                              {item.prescription_file.split('/').pop().slice(0, 8)}...
-                            </p>
-                            {/* Download Button */}
-                            <a
-                              href={item.prescription_file}
-                              download
-                              className="bg-customBlue text-white px-4 py-2 rounded hover:bg-customPink transition duration-200"
-                            >
-                              Download
-                            </a>
-                          </div>
+                      <td className="px-4 py-1 border text-center">
+                        {item.prescription_required ? (
+                          item.prescription_file ? (
+                            <div className="flex flex-col items-center space-y-2">
+                              <p className="text-gray-600 text-sm">
+                                {item.prescription_file
+                                  .split("/")
+                                  .pop()
+                                  .slice(0, 12)}
+                                ...
+                              </p>
+                              <a
+                                href={item.prescription_file}
+                                download
+                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200"
+                              >
+                                View
+                              </a>
+                            </div>
+                          ) : (
+                            <span className="text-red-500">
+                              Required
+                            </span>
+                          )
                         ) : (
                           "Not Required"
                         )}
