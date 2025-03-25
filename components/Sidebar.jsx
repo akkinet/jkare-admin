@@ -11,6 +11,7 @@ import {
   FaPrescription,
   FaShoppingCart,
 } from "react-icons/fa";
+import { IoSettings } from "react-icons/io5";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -45,6 +46,7 @@ const Sidebar = () => {
       { href: "/dashboard/products", label: "Products", icon: FaBox, key: "products" },
       { href: "/dashboard/userManagement", label: "User Management", icon: FaUserCog, key: "userManagement" },
       { href: "/dashboard/userRoles", label: "User Roles", icon: FaUserShield, key: "userRoles" },
+      { href: "/dashboard/globalSettings", label: "Global Settings", icon: IoSettings, key: "globalSettings" },
     ],
     Analyst: [
       { href: "/", label: "Dashboard", icon: FaChartLine, key: "dashboard" },

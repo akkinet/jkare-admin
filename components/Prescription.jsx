@@ -6,7 +6,6 @@ export default function Prescription({ initialOrders, error }) {
   const sortedOrders = [...initialOrders].sort(
     (a, b) => new Date(b.order_date) - new Date(a.order_date)
   );
-
   // Basic state
   const [status, setStatus] = useState("Pending");
   const [prescriptionFilter, setPrescriptionFilter] = useState("both");
@@ -14,18 +13,15 @@ export default function Prescription({ initialOrders, error }) {
   const [orders, setOrders] = useState(sortedOrders);
   const [filteredOrders, setFilteredOrders] = useState(sortedOrders);
   const [searchQuery, setSearchQuery] = useState("");
-
   // Modals
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRequestInfoModal, setShowRequestInfoModal] = useState(false);
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [showOrderModal, setShowOrderModal] = useState(false);
-
   // Selected items / files
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
-
   // Email details object
   const [emailDetails, setEmailDetails] = useState({
     to: "",
@@ -33,21 +29,16 @@ export default function Prescription({ initialOrders, error }) {
     message: "",
     reason: "unable_to_read_order",
   });
-
   // Keep track of which order row is highlighted for "Review"
   const [highlightedOrderId, setHighlightedOrderId] = useState(null);
-
   // Keep track of any requested info messages you’ve already sent
   const [infoRequestedOrders, setInfoRequestedOrders] = useState({});
-
-  // Track sending status for the “Request More Info” email
+  // track sending status for the “Request More Info” email
   const [infoRequestSendStatus, setInfoRequestSendStatus] = useState("idle");
-
   // NEW: Store the mail preview HTML
   const [previewHtml, setPreviewHtml] = useState("");
-
   // -----------------------------------------------
-  // Helper: Generate the email HTML body
+  // Helper: Generated the email HTML body
   // -----------------------------------------------
   function generateMailHtml(order, user) {
     // Build table rows
@@ -289,10 +280,8 @@ export default function Prescription({ initialOrders, error }) {
   const reqInfoHandler = async (order, user) => {
     try {
       setInfoRequestSendStatus("sending");
-
       // Generate final HTML
       const htmlBody = generateMailHtml(order, user);
-
       // Send via your email API
       const response = await fetch(
         "https://mazr0geob3.execute-api.ap-south-1.amazonaws.com/v1/send-email",
@@ -306,20 +295,17 @@ export default function Prescription({ initialOrders, error }) {
           }),
         }
       );
-
       if (!response.ok) {
         console.warn("Email API returned a non-OK status:", response.status);
       }
       setInfoRequestSendStatus("sent");
-
       // Store user’s typed message if needed
       setInfoRequestedOrders((prev) => ({
         ...prev,
         [order._id]: user.message,
       }));
     } catch (err) {
-      // If there's an actual network or code error, handle as needed
-      setInfoRequestSendStatus("sent"); // or "idle" if you want them to retry
+      setInfoRequestSendStatus("sent"); 
     }
   };
 
@@ -342,7 +328,6 @@ export default function Prescription({ initialOrders, error }) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-
             <div className="flex space-x-4 mt-4 sm:mt-0">
               {/* Order status buttons */}
               <div className="flex space-x-2">
