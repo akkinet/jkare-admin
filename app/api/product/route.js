@@ -19,7 +19,7 @@ export async function POST(req) {
       const file_name = fileName.slice(0, lastDot);
       const extension = fileName.slice(lastDot + 1);
       const newFileName = `products/${
-        body.prod_id
+        body._id
       }/${file_name}_${new Date().getTime()}.${extension}`;
 
       const params = {
@@ -36,7 +36,7 @@ export async function POST(req) {
     }
 
     const productsCollection = db.collection('RealProducts');
-    const categoriesCollection = db.collection('RealCategories');
+    const categoriesCollection = db.collection('RealCategory');
 
     // Insert product into MongoDB
     const product = { ...body, prod_images: uploadedImages };
@@ -66,7 +66,7 @@ export const GET = async (req) => {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('query');
 
-    const productsCollection = db.collection('Products');
+    const productsCollection = db.collection('RealProducts');
 
     // Build the query
     const filter = {};

@@ -40,7 +40,7 @@ const ProductTable = ({ data }) => {
     // Update the discount in the products state
     setProducts((prevProducts) =>
       prevProducts.map((p) =>
-        p.prod_id == editDiscountValue.prodID
+        p._id == editDiscountValue.prodID
           ? { ...p, discount: editDiscountValue.discount }
           : p
       )
@@ -96,7 +96,7 @@ const ProductTable = ({ data }) => {
     // Save the updated stock value for this product
     setProducts((prevProducts) =>
       prevProducts.map((p) =>
-        p.prod_id == editStockValue.prodID
+        p._id == editStockValue.prodID
           ? { ...p, stockQuantity: editStockValue.quantity }
           : p
       )
@@ -121,7 +121,7 @@ const ProductTable = ({ data }) => {
     // Save the updated price for this product
     setProducts((prevProducts) =>
       prevProducts.map((p) =>
-        p.prod_id == editPriceValue.prodID
+        p._id == editPriceValue.prodID
           ? { ...p, prod_value: editPriceValue.price }
           : p
       )
@@ -143,7 +143,7 @@ const ProductTable = ({ data }) => {
 
     setProducts((prevProducts) =>
       prevProducts.map((p) =>
-        p.prod_id == id
+        p._id == id
           ? { ...p, isFeatured: !bool }
           : p
       )
@@ -234,7 +234,7 @@ const ProductTable = ({ data }) => {
                   </thead>
                   <tbody>
                     {products.map((product, index) => (
-                      <tr key={product.prod_id}>
+                      <tr key={product._id}>
                         {/* Serial Number */}
                         <td className="border border-gray-300 px-4 py-0">
                           {index + 1}
@@ -243,7 +243,7 @@ const ProductTable = ({ data }) => {
                         {/* Is Featured */}
                         <td
                           className="border border-gray-300 px-2 py-2 group relative"
-                          onClick={() => statHandler(product.prod_id, product.isFeatured)}
+                          onClick={() => statHandler(product._id, product.isFeatured)}
                         >
                           {product.isFeatured ? (
                             <div className="relative flex justify-center items-center hover:cursor-pointer">
@@ -303,7 +303,7 @@ const ProductTable = ({ data }) => {
                         {/* <td className="border border-gray-300 px-4 py-2 relative">
                         <img
                           src={product.prod_images[0]}
-                          alt={`Product ${product.prod_id}`}
+                          alt={`Product ${product._id}`}
                           className="w-20 h-20 object-cover"
                         />
                       </td> */}
@@ -324,7 +324,7 @@ const ProductTable = ({ data }) => {
 
                         {/* Product ID */}
                         <td className="border border-gray-300 px-4 py-2">
-                          {product.prod_id}
+                          {product._id}
                         </td>
 
                         {/* Vendor */}
@@ -367,7 +367,7 @@ const ProductTable = ({ data }) => {
                                 setEditStockValue({
                                   quantity: product.stockQuantity,
                                   name: product.prod_name,
-                                  prodID: product.prod_id,
+                                  prodID: product._id,
                                 });
                               }}
                             >
@@ -387,7 +387,7 @@ const ProductTable = ({ data }) => {
                                 setEditPriceValue({
                                   price: product.prod_value,
                                   name: product.prod_name,
-                                  prodID: product.prod_id,
+                                  prodID: product._id,
                                 });
                               }}
                             >
@@ -406,7 +406,7 @@ const ProductTable = ({ data }) => {
                                 setEditDiscountValue({
                                   discount: product.discount || 0,
                                   name: product.prod_name,
-                                  prodID: product.prod_id,
+                                  prodID: product._id,
                                 });
                               }}
                             >
