@@ -1,11 +1,23 @@
+import { ObjectId } from "mongodb";
 import { transaction, getTransaction } from "../../../lib/shippo";
+import db from "@/lib/mongodb"
 
-export async function POST(req) {
-  const { rate } = await req.json();
+export async function PUT(req) {
+  const { rate, order_id } = await req.json();
   try {
     const res = await transaction(rate);
+    const Order = db.collection("Order");
+    await Order.updateOne(
+      {
+        "_id": new ObjectId(order_id)
+      },
+      { $set: { tracking_number: res.tracking_number || "SHIPPO_TRANSIT", carrier: res.carrier || "shippo" } },
+      // { new: true }
+    );
+
     return Response.json(res, { status: 200 });
   } catch (error) {
+    console.error(error)
     return Response.json(
       { error: "Failed to track shipment" },
       { status: 500 }
