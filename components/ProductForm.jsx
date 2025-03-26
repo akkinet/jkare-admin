@@ -15,7 +15,7 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
   const [isUploadConfirmModalOpen, setIsUploadConfirmModalOpen] =
     useState(false);
   const [newProduct, setNewProduct] = useState({
-    prod_id: "",
+    _id: "",
     brand_name: "",
     category: "",
     isFeatured: true,
@@ -80,7 +80,7 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
 
   const handleUploadClick = () => {
     // Check if all required fields have values
-    if (!newProduct.prod_name || !newProduct.category || !newProduct.prod_id || 
+    if (!newProduct.prod_name || !newProduct.category || !newProduct._id || 
         !newProduct.brand_name || !newProduct.vendor_name || !newProduct.prod_value ||
         newProduct.prod_images.length === 0 || newProduct.prod_highlight.length === 0 ||
         !newProduct.prod_desc) {
@@ -110,8 +110,8 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
     };
     const uploadObj = { ...newProduct };
     uploadObj.key_features = { ...uploadObj.key_features, ...productFeatures };
-    if (uploadObj.prod_id == "") uploadObj.prod_id = new Date().getTime();
-    else uploadObj.prod_id = parseInt(newProduct.prod_id);
+    if (uploadObj._id == "") uploadObj._id = new Date().getTime();
+    else uploadObj._id = parseInt(newProduct._id);
 
     const response = await fetch("/api/product", {
       method: "POST",
@@ -123,7 +123,7 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
 
     const result = await response.json();
     setNewProduct({
-      prod_id: "",
+      _id: "",
       brand_name: "",
       category: "",
       isFeatured: true,
@@ -233,7 +233,7 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
     const { name, value } = e.target;
     setNewProduct({
       ...newProduct,
-      [name]: name == "prod_id" ? value.trim() : value,
+      [name]: name == "_id" ? value.trim() : value,
     });
   };
 
@@ -337,11 +337,11 @@ function ProductForm({ brandList, catList, vendorList, onBack }) {
                 <input
                   type="text"
                   placeholder="Enter Product ID"
-                  name="prod_id"
-                  value={newProduct.prod_id}
+                  name="_id"
+                  value={newProduct._id}
                   onChange={({ target }) =>
                     !isNaN(target.value) &&
-                    setNewProduct({ ...newProduct, prod_id: target.value })
+                    setNewProduct({ ...newProduct, _id: target.value })
                   }
                   className="w-full border border-gray-300 rounded px-4 py-2"
                 />

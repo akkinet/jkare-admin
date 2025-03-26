@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import { transaction, getTransaction } from "../../../lib/shippo";
 import db from "@/lib/mongodb"
 
-export async function PUT(req) {
+export async function POST(req) {
   const { rate, order_id } = await req.json();
   try {
     const res = await transaction(rate);
@@ -31,7 +31,6 @@ export async function GET(request){
   if (!id) {
     return Response.json({ error: 'Transaction ID is required' }, { status: 400 });
   }
-
   try {
     const res = await getTransaction(id);
     return Response.json(res, { status: 200 });

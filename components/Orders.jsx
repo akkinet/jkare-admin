@@ -2,52 +2,61 @@
 import React, { useState, useEffect } from "react";
 
 const Orders = ({ initialOrders }) => {
+  // Sort orders descending by date
   const sortedOrders = [...initialOrders].sort(
     (a, b) => new Date(b.order_date) - new Date(a.order_date)
   );
-
   const [orders] = useState(sortedOrders);
   const [filteredOrders, setFilteredOrders] = useState(sortedOrders);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // State for storing label creation response
+  // State for label creation
   const [labelInfo, setLabelInfo] = useState(null);
-  // Track whether label has been created
   const [isLabelCreated, setIsLabelCreated] = useState(false);
-  // Track whether we are currently creating the label
   const [isCreatingLabel, setIsCreatingLabel] = useState(false);
 
   // State for tracking info
   const [trackingInfo, setTrackingInfo] = useState(null);
   const [isFetchingTracking, setIsFetchingTracking] = useState(false);
 
+  // ===== SEARCH HANDLER =====
   const handleSearch = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-    if (query === "") {
+    if (!query) {
       setFilteredOrders(orders);
-    } else {
-      const filtered = orders.filter(
-        (order) =>
-          order._id.toLowerCase().includes(query.toLowerCase()) ||
-          order.customer_email.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredOrders(filtered);
+      return;
     }
+    const filtered = orders.filter(
+      (order) =>
+        order._id.toLowerCase().includes(query.toLowerCase()) ||
+        order.customer_email.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredOrders(filtered);
   };
 
+  // ===== OPEN / CLOSE MODAL =====
   const openModal = (order) => {
     setSelectedOrder(order);
     setIsModalOpen(true);
 
-    // Reset all label/tracking states
+    // Reset label + tracking UI states
     setLabelInfo(null);
     setIsLabelCreated(false);
     setIsCreatingLabel(false);
     setTrackingInfo(null);
     setIsFetchingTracking(false);
+
+    // If the order is completed and already has a carrier + tracking_number, fetch tracking data
+    if (
+      order.order_status === "Completed" &&
+      order.carrier &&
+      order.tracking_number
+    ) {
+      fetchTrackingData(order.carrier, order.tracking_number);
+    }
   };
 
   const closeModal = () => {
@@ -55,24 +64,47 @@ const Orders = ({ initialOrders }) => {
     setIsModalOpen(false);
   };
 
-  // Function to fetch tracking data after label creation
-  const fetchTrackingData = async (data) => {
-    console.log("trackingnumber and carrier" , data.tracking_number  , data.tracking_status);
-    // if (!data?.tracking_number || !data?.tracking_status) return;
+  // ===== CREATE LABEL HANDLER =====
+  const handleCreateLabel = async () => {
+    // We need shipping_rate and order_id
+    if (!selectedOrder?.shipping_rate || !selectedOrder?._id) return;
 
-    // If tracking_status is "UNKNOWN", use "shippo" as carrier
-    const carrier =
-      data.tracking_status.trim() !== "" && data.tracking_status !== "UNKNOWN"
-        ? data.tracking_status
-        : "shippo";
-    const trackingNumber = data.tracking_number;
-   
+    try {
+      setIsCreatingLabel(true);
+
+      const response = await fetch("/api/transaction", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rate: selectedOrder.shipping_rate,
+          order_id: selectedOrder._id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create label");
+      }
+
+      const data = await response.json();
+      setLabelInfo(data);
+      setIsLabelCreated(true);
+    } catch (error) {
+      console.error("Error creating label:", error.message);
+    } finally {
+      setIsCreatingLabel(false);
+    }
+  };
+
+  // ===== TRACKING DATA FETCHING =====
+  const fetchTrackingData = async (carrier, trackingNumber) => {
+    if (!carrier || !trackingNumber) return;
 
     try {
       setIsFetchingTracking(true);
       const response = await fetch(
-        // `/api/track?carrier=${carrier}&tracking=${trackingNumber}`,
-        `/api/track?carrier=${"shippo"}&tracking=${"SHIPPO_TRANSIT"}`,
+        `/api/track?carrier=${carrier}&tracking=${trackingNumber}`,
         {
           method: "GET",
         }
@@ -91,43 +123,7 @@ const Orders = ({ initialOrders }) => {
     }
   };
 
-  // This function will be triggered when the "Create Label" button is clicked
-  const handleCreateLabel = async () => {
-    if (!selectedOrder?.shipping_rate) return;
-
-    try {
-      setIsCreatingLabel(true);
-      const response = await fetch("/api/transaction", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          // The backend expects the shipping rate ID:
-          rate: selectedOrder.shipping_rate,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create label");
-      }
-
-      const data = await response.json();
-      // Store the returned data in state
-      setLabelInfo(data);
-      // Mark that the label has been created
-      setIsLabelCreated(true);
-
-      // Immediately fetch tracking info if we have a tracking number + status
-      await fetchTrackingData(data);
-    } catch (error) {
-      console.error("Error creating label:", error.message);
-    } finally {
-      setIsCreatingLabel(false);
-    }
-  };
-
-  // Conditionally determine what the create-label button should display
+  // ===== HELPER FUNCTIONS FOR LABEL BUTTON STYLES =====
   const getCreateLabelButtonContent = () => {
     if (isLabelCreated) {
       return <>Label Created ✅</>;
@@ -163,7 +159,6 @@ const Orders = ({ initialOrders }) => {
     return "Create Label";
   };
 
-  // Conditionally determine the create-label button styles
   const getCreateLabelButtonClass = () => {
     if (isLabelCreated) {
       // light green background
@@ -183,6 +178,7 @@ const Orders = ({ initialOrders }) => {
         All Orders
       </h1>
 
+      {/* Search bar + total count */}
       <div className="mb-4 flex justify-between items-center">
         <input
           type="text"
@@ -196,6 +192,7 @@ const Orders = ({ initialOrders }) => {
         </span>
       </div>
 
+      {/* Orders Table */}
       <div className="overflow-x-auto overflow-y-auto max-h-[56vh]">
         <table className="min-w-full bg-white shadow-md rounded-lg">
           <thead className="bg-gray-200 text-gray-700 sticky top-0 z-10">
@@ -268,9 +265,10 @@ const Orders = ({ initialOrders }) => {
         </table>
       </div>
 
+      {/* ==================== MODAL ==================== */}
       {isModalOpen && selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 ">
-          <div className="bg-white rounded-lg shadow-lg max-w-5xl w-full  md:max-h-[95vh] p-6 overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-5xl w-full md:max-h-[95vh] p-6 overflow-y-auto">
             <h3 className="text-xl font-bold mb-2 text-left border-b-2 border-customBlue pb-2">
               Order Details
             </h3>
@@ -334,7 +332,7 @@ const Orders = ({ initialOrders }) => {
                 {/* Insurance Section */}
                 <div className="flex justify-between items-center">
                   <p>
-                    <strong>Insurance Recieved :</strong>{" "}
+                    <strong>Insurance Received:</strong>{" "}
                     {selectedOrder.insurance_pdf
                       ? selectedOrder.insurance_company
                       : "No"}
@@ -424,56 +422,66 @@ const Orders = ({ initialOrders }) => {
               </table>
             </div>
 
-            {/* Label + Tracking Info */}
-            <div className="flex flex-col md:flex-row mt-6 gap-6">
-              {/* Label Information (left side) */}
-              {labelInfo && (
-                <div className="bg-gray-100 p-4 rounded-md md:w-1/2">
-                  <h4 className="text-lg font-bold mb-2">Label Information</h4>
-                  <p>
-                    <strong>Tracking Number:</strong>{" "}
-                    {(labelInfo.tracking_number &&
-                      labelInfo.tracking_number.trim()) ||
-                      "SHIPPO_TRANSIT"}
-                  </p>
-                  <p>
-                    <strong>Tracking Status:</strong>{" "}
-                    {(labelInfo.tracking_status &&
-                      labelInfo.tracking_status.trim()) ||
-                      "shippo"}
-                  </p>
-                  <p>
-                    <strong>Tracking URL Provider:</strong>{" "}
-                    {labelInfo.tracking_url_provider || "N/A"}
-                  </p>
-                  <p>
-                    <strong>Rate ID:</strong> {labelInfo.rate}
-                  </p>
-                  <p>
-                    <strong>Parcel ID:</strong> {labelInfo.parcel}
-                  </p>
-                  <p>
-                    <strong>Label URL:</strong>{" "}
-                    {labelInfo.label_url ? (
-                      <a
-                        href={labelInfo.label_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline text-blue-600"
-                      >
-                        View Label
-                      </a>
-                    ) : (
-                      "N/A"
-                    )}
-                  </p>
-                </div>
-              )}
+            {/* LABEL + TRACKING SECTION (only if order status is "Completed") */}
+            {selectedOrder.order_status === "Completed" && (
+              <div className="flex flex-col md:flex-row mt-6 gap-6">
+                {/* Label Information */}
+                {labelInfo && (
+                  <div className="bg-gray-100 p-4 rounded-md md:w-1/2">
+                    <h4 className="text-lg font-bold mb-2">Label Information</h4>
+                    {/* Only show the Label URL */}
+                    <p>
+                      <strong>Label URL:</strong>{" "}
+                      {labelInfo.label_url ? (
+                        <a
+                          href={labelInfo.label_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline text-blue-600"
+                        >
+                          View Label
+                        </a>
+                      ) : (
+                        "N/A"
+                      )}
+                    </p>
+                  </div>
+                )}
 
-              {/* Tracking Information (right side) */}
-              {labelInfo && (
+                {/* Tracking Information */}
                 <div className="bg-gray-100 p-4 rounded-md md:w-1/2">
                   <h4 className="text-lg font-bold mb-2">Tracking History</h4>
+
+                  {/* Show carrier and tracking # from order */}
+                  <p>
+                    <strong>Carrier:</strong>{" "}
+                    {selectedOrder.carrier || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Tracking Number:</strong>{" "}
+                    {selectedOrder.tracking_number || "N/A"}
+                  </p>
+
+                  {/* REFRESH BUTTON */}
+                  {selectedOrder?.carrier || selectedOrder?.tracking_number ? (
+                    <button
+                      onClick={() =>
+                        fetchTrackingData(
+                          labelInfo?.carrier || selectedOrder.carrier,
+                          labelInfo?.tracking_number ||
+                            selectedOrder.tracking_number
+                        )
+                      }
+                      className="mt-3 mb-3 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                    >
+                      Refresh Tracking
+                    </button>
+                  ) : (
+                    <p className="mt-3 mb-3 text-gray-500">
+                      No carrier/tracking number yet.
+                    </p>
+                  )}
+
                   {isFetchingTracking ? (
                     <div className="flex items-center space-x-2">
                       <svg
@@ -500,42 +508,42 @@ const Orders = ({ initialOrders }) => {
                     </div>
                   ) : trackingInfo ? (
                     <div>
-                      <p>
-                        <strong>Carrier:</strong> {trackingInfo.carrier}
-                      </p>
+                      {/* If you also want to show the carrier from trackingInfo, keep it here */}
                       <p>
                         <strong>ETA:</strong> {trackingInfo.eta || "N/A"}
                       </p>
                       <h5 className="font-semibold mt-4 mb-2">
                         Tracking Events:
                       </h5>
-                      <ul className="relative border-l border-gray-300 pl-4">
-                        {trackingInfo.tracking_history?.map(
-                          (historyItem, idx) => (
-                            <li key={historyItem.object_id} className="mb-4">
-                              {/* Vertical line and bullet */}
+                      {trackingInfo.tracking_history?.length ? (
+                        <ul className="relative border-l border-gray-300 pl-4">
+                          {trackingInfo.tracking_history.map((item) => (
+                            <li key={item.object_id} className="mb-4">
                               <div className="absolute -left-2 top-1.5 h-3 w-3 rounded-full bg-blue-500"></div>
-
                               <p className="text-sm text-gray-800 font-medium">
-                                {historyItem.status_date}
+                                {item.status_date}
                               </p>
                               <p className="text-sm text-gray-600">
-                                Status: {historyItem.status}
+                                Status: {item.status}
                               </p>
-                              {historyItem.location && (
+                              {item.location && (
                                 <p className="text-sm text-gray-600">
-                                  Location: {historyItem.location.city},{" "}
-                                  {historyItem.location.state},{" "}
-                                  {historyItem.location.country}
+                                  Location: {item.location.city},{" "}
+                                  {item.location.state},{" "}
+                                  {item.location.country}
                                 </p>
                               )}
                               <p className="text-sm text-gray-600">
-                                Details: {historyItem.status_details}
+                                Details: {item.status_details}
                               </p>
                             </li>
-                          )
-                        )}
-                      </ul>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-gray-500 mt-2">
+                          No tracking events available.
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <p className="text-gray-500">
@@ -543,11 +551,12 @@ const Orders = ({ initialOrders }) => {
                     </p>
                   )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Buttons at bottom of modal */}
+            {/* ACTION BUTTONS (BOTTOM) */}
             <div className="text-right mt-6 flex justify-end space-x-4">
+              {/* Only show Create Label button if order_status === "Completed" */}
               {selectedOrder.order_status === "Completed" && (
                 <button
                   className={getCreateLabelButtonClass()}
